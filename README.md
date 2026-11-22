@@ -116,16 +116,16 @@ Clone this repository and run `scripts/install.sh`:
 git clone https://github.com/lrgthu/scientific-research-skills.git
 cd scientific-research-skills
 
-# Install for Google Antigravity (~/.gemini/config/plugins/)
-./scripts/install.sh --target antigravity
+# Install for Google Antigravity (~/.gemini/config/plugins/) and pin global default research router
+./scripts/install.sh --target antigravity --pin-global
 
 # Install skills for Claude Code (~/.claude/skills/), Codex (~/.codex/skills/), or Cursor (~/.cursor/skills/)
-./scripts/install.sh --target claude
+./scripts/install.sh --target claude --pin-global
 ./scripts/install.sh --target codex
 ./scripts/install.sh --target cursor
 
-# Or install everywhere at once
-./scripts/install.sh --target all
+# Or install everywhere at once and pin global Always-On research routing
+./scripts/install.sh --target all --pin-global
 ```
 
 For **Claude Code Plugin Marketplace** users, you can also register the repository directly:

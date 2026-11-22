@@ -84,6 +84,13 @@ class TestPluginAndSkillManifests(unittest.TestCase):
             self.assertIn("\ndescription:", f"\n{txt}")
 
     def test_zero_hardcoded_personal_paths(self) -> None:
+        router = REPO_ROOT / "rules/GLOBAL_RESEARCH_ROUTER.md"
+        self.assertTrue(router.is_file(), "Missing rules/GLOBAL_RESEARCH_ROUTER.md")
+        router_txt = router.read_text(encoding="utf-8")
+        self.assertIn("<!-- scientific-research-skills:start -->", router_txt)
+        self.assertNotIn("/Users/", router_txt)
+        self.assertLess(len(router_txt.encode("utf-8")), 4000)
+
         for f in (REPO_ROOT / "plugins").rglob("*"):
             if f.is_file() and f.suffix in {".md", ".py", ".json", ".svg"}:
                 content = f.read_text(encoding="utf-8")

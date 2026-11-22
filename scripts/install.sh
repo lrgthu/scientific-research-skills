@@ -1,21 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Cross-Agent Installer, Sync & Health Check Script for scientific-research-skills
+# Cross-Agent Installer, Global Pinner & Health Check Script for scientific-research-skills
 # Supports: Antigravity / Gemini CLI, Claude Code, Codex CLI, and Cursor.
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROUTER_BLOCK_FILE="$REPO_ROOT/rules/GLOBAL_RESEARCH_ROUTER.md"
 TARGET="antigravity"
 MODE="install"
+PIN_GLOBAL="false"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/install.sh [--target antigravity|claude|codex|cursor|all] [--check]
+Usage: ./scripts/install.sh [--target antigravity|claude|codex|cursor|all] [--pin-global] [--check]
 
 Options:
-  --target, -t   Destination agent runtime (default: antigravity)
-  --check, -c    Verify prerequisites (uv, python3) and check installed skill directories
-  --help, -h     Show this help message
+  --target, -t       Destination agent runtime (default: antigravity)
+  --pin-global, -p   Pin the Default Scientific Research Router into global Always-On rules
+                     (~/.gemini/config/rules/AGENTS.md, ~/.claude/CLAUDE.md, ~/.codex/AGENTS.md)
+  --check, -c        Verify prerequisites (uv), installed plugins/skills, and global pin state
+  --help, -h         Show this help message
 EOF
 }
 
@@ -24,6 +28,10 @@ while [[ $# -gt 0 ]]; do
     --target|-t)
       TARGET="${2:-}"
       shift 2
+      ;;
+    --pin-global|-p)
+      PIN_GLOBAL="true"
+      shift
       ;;
     --check|-c)
       MODE="check"
@@ -41,6 +49,47 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+upsert_router_block() {
+  local label="$1"
+  local rule_file="$2"
+  local max_bytes="$3"
+
+  mkdir -p "$(dirname "$rule_file")"
+  python3 - "$label" "$rule_file" "$ROUTER_BLOCK_FILE" "$max_bytes" <<'PY'
+import pathlib
+import re
+import sys
+
+label, rule_path_s, block_path_s, max_bytes_s = sys.argv[1:5]
+rule_path = pathlib.Path(rule_path_s)
+block = pathlib.Path(block_path_s).read_text(encoding="utf-8").strip()
+max_bytes = int(max_bytes_s)
+
+existing = rule_path.read_text(encoding="utf-8") if rule_path.exists() else ""
+pattern = re.compile(
+    r"<!-- scientific-research-skills:start -->.*?<!-- scientific-research-skills:end -->",
+    re.DOTALL,
+)
+
+if pattern.search(existing):
+    updated = pattern.sub(block, existing)
+else:
+    sep = "\n\n---\n\n" if existing.strip() else ""
+    updated = existing.rstrip() + sep + block + "\n"
+
+encoded_len = len(updated.encode("utf-8"))
+if max_bytes > 0 and encoded_len > max_bytes:
+    print(
+        f"[{label}] Skipped modifying {rule_path} ({encoded_len} B > {max_bytes} B cap; "
+        "skills remain globally available via skills directory)."
+    )
+    raise SystemExit(0)
+
+rule_path.write_text(updated, encoding="utf-8")
+print(f"[{label}] Pinned global research router -> {rule_path} ({encoded_len} bytes)")
+PY
+}
+
 if [[ "$MODE" == "check" ]]; then
   echo "=== Prerequisites ==="
   if command -v uv >/dev/null 2>&1; then
@@ -55,12 +104,24 @@ if [[ "$MODE" == "check" ]]; then
     "$HOME/.gemini/config/plugins/scientific-writing" \
     "$HOME/.claude/skills/scholarly-graph-audit" \
     "$HOME/.claude/skills/scientific-computing" \
+    "$HOME/.claude/skills/scientific-writing" \
     "$HOME/.codex/skills/scholarly-graph-audit" \
     "$HOME/.codex/skills/scientific-computing" \
+    "$HOME/.codex/skills/scientific-writing" \
     "$HOME/.cursor/skills/scholarly-graph-audit" \
-    "$HOME/.cursor/skills/scientific-computing"; do
+    "$HOME/.cursor/skills/scientific-computing" \
+    "$HOME/.cursor/skills/scientific-writing"; do
     if [[ -d "$d" ]]; then
       echo "  [PRESENT] $d"
+    fi
+  done
+  echo "=== Global Always-On Router Pin State ==="
+  for rf in \
+    "$HOME/.gemini/config/rules/AGENTS.md" \
+    "$HOME/.claude/CLAUDE.md" \
+    "$HOME/.codex/AGENTS.md"; do
+    if [[ -f "$rf" ]] && grep -q "scientific-research-skills:start" "$rf"; then
+      echo "  [PINNED] $rf"
     fi
   done
   exit 0
@@ -75,6 +136,9 @@ install_antigravity() {
     find "$dest/$p" -name "__pycache__" -type d -prune -exec rm -rf {} +
     echo "[antigravity] Synced plugin -> $dest/$p"
   done
+  if [[ "$PIN_GLOBAL" == "true" ]]; then
+    upsert_router_block "antigravity" "$HOME/.gemini/config/rules/AGENTS.md" 24000
+  fi
 }
 
 install_flat_skills() {
@@ -102,9 +166,15 @@ case "$TARGET" in
     ;;
   claude)
     install_flat_skills "claude" "$HOME/.claude/skills"
+    if [[ "$PIN_GLOBAL" == "true" ]]; then
+      upsert_router_block "claude" "$HOME/.claude/CLAUDE.md" 0
+    fi
     ;;
   codex)
     install_flat_skills "codex" "$HOME/.codex/skills"
+    if [[ "$PIN_GLOBAL" == "true" ]]; then
+      upsert_router_block "codex" "$HOME/.codex/AGENTS.md" 32768
+    fi
     ;;
   cursor)
     install_flat_skills "cursor" "$HOME/.cursor/skills"
@@ -112,7 +182,13 @@ case "$TARGET" in
   all)
     install_antigravity
     install_flat_skills "claude" "$HOME/.claude/skills"
+    if [[ "$PIN_GLOBAL" == "true" ]]; then
+      upsert_router_block "claude" "$HOME/.claude/CLAUDE.md" 0
+    fi
     install_flat_skills "codex" "$HOME/.codex/skills"
+    if [[ "$PIN_GLOBAL" == "true" ]]; then
+      upsert_router_block "codex" "$HOME/.codex/AGENTS.md" 32768
+    fi
     install_flat_skills "cursor" "$HOME/.cursor/skills"
     ;;
   *)

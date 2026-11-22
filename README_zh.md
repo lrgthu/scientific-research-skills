@@ -73,16 +73,16 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 git clone https://github.com/lrgthu/scientific-research-skills.git
 cd scientific-research-skills
 
-# 安装到 Google Antigravity (~/.gemini/config/plugins/)
-./scripts/install.sh --target antigravity
+# 安装到 Google Antigravity (~/.gemini/config/plugins/) 并全局钉死（Pin）科研默认路由规则
+./scripts/install.sh --target antigravity --pin-global
 
 # 安装到 Claude Code (~/.claude/skills/)、Codex (~/.codex/skills/) 或 Cursor (~/.cursor/skills/)
-./scripts/install.sh --target claude
+./scripts/install.sh --target claude --pin-global
 ./scripts/install.sh --target codex
 ./scripts/install.sh --target cursor
 
-# 或一次性同步到全部环境
-./scripts/install.sh --target all
+# 或一次性同步到全部环境并开启全局科研默认调度
+./scripts/install.sh --target all --pin-global
 ```
 
 **Claude Code 插件市场**用户也可直接添加：

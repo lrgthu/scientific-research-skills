@@ -20,5 +20,5 @@ jobs:
         run: uv run tests/test_suite.py
       - name: Verify installer script
         run: |
-          ./scripts/install.sh --target all
+          ./scripts/install.sh --target all --pin-global
           ./scripts/install.sh --check
