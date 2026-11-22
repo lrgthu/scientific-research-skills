@@ -1,4 +1,4 @@
-# Scientific Writing & Figures (Global Research Communication Suite `v1.3.3`)
+# Scientific Writing & Figures (Global Research Communication Suite `v1.4.0`)
 
 Global plugin bundling **two decoupled, on-demand skills** plus a unified **Always-On Global Rule (`rules/AGENTS.md`)** for scholarly writing, author rebuttals, data visualization, and publication figure/table engineering:
 

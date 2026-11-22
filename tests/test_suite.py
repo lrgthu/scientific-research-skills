@@ -30,6 +30,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 GRAPH_SCRIPT = REPO_ROOT / "plugins/research-literature/skills/scholarly-graph-audit/scripts/scholarly_graph.py"
 MAP_SCRIPT = REPO_ROOT / "plugins/research-literature/skills/scholarly-graph-audit/scripts/render_citation_map.py"
 MATRIX_SCRIPT = REPO_ROOT / "plugins/research-literature/skills/literature-evidence-workflow/scripts/compile_evidence_matrix.py"
+VISUAL_LINT_SCRIPT = REPO_ROOT / "plugins/scientific-writing/skills/scientific-writing/scripts/lint_manuscript_visuals.py"
 
 
 def load_module(name: str, path: Path):
@@ -43,6 +44,7 @@ def load_module(name: str, path: Path):
 sg = load_module("scholarly_graph", GRAPH_SCRIPT)
 rcm = load_module("render_citation_map", MAP_SCRIPT)
 cem = load_module("compile_evidence_matrix", MATRIX_SCRIPT)
+lmv = load_module("lint_manuscript_visuals", VISUAL_LINT_SCRIPT)
 
 
 class TestPluginAndSkillManifests(unittest.TestCase):
@@ -190,6 +192,54 @@ class TestMatrixAndCitationMapCompilers(unittest.TestCase):
         self.assertIn("btnCopyBib", html)
         self.assertIn("Copy BibTeX", html)
         self.assertIn('[class*="bg-[var(--card)]"]', html)
+
+
+class TestProseVisualSymbiosisLinter(unittest.TestCase):
+    def test_detects_orphans_out_of_order_pointer_topics_and_weak_captions(self) -> None:
+        bad_tex = r"""
+        Figure~\ref{fig:second} shows that loss decreases.
+        Later we mention accuracy (Fig.~\ref{fig:first}) and a missing ref (Tab.~\ref{tab:ghost}).
+
+        \begin{figure}[t]
+          \caption{Relationship between width and validation loss.}
+          \label{fig:first}
+        \end{figure}
+
+        \begin{figure}[t]
+          \caption{Spectral gating preserves constant validation loss up to 128k tokens.}
+          \label{fig:second}
+        \end{figure}
+
+        \begin{table}[t]
+          \caption{Ablation across tokenization granularities.}
+          \label{tab:orphan}
+        \end{table}
+        """
+        rep = lmv.lint_tex_source(bad_tex)
+        self.assertFalse(rep["clean"])
+        self.assertEqual([o["label"] for o in rep["orphan_visuals"]], ["tab:orphan"])
+        self.assertEqual([o["label"] for o in rep["out_of_order_callouts"]], ["fig:first"])
+        self.assertEqual(rep["undefined_visual_refs"], ["tab:ghost"])
+        self.assertEqual(len(rep["pointer_topic_sentences"]), 1)
+        self.assertEqual([w["label"] for w in rep["weak_descriptive_figure_captions"]], ["fig:first"])
+
+    def test_clean_manuscript_passes(self) -> None:
+        good_tex = r"""
+        Spectral gating preserved constant loss up to 128k tokens (Fig.~\ref{fig:scaling}),
+        cutting decoding latency 3.1-fold over Flash-2 (Table~\ref{tab:latency}).
+
+        \begin{figure}[t]
+          \caption{\textbf{Spectral gating preserves constant loss up to 128k tokens.} Validation perplexity across context lengths ($n=5$ seeds, 95\% CI).}
+          \label{fig:scaling}
+        \end{figure}
+
+        \begin{table}[t]
+          \caption{Wall-clock decoding latency across sequence lengths.}
+          \label{tab:latency}
+        \end{table}
+        """
+        rep = lmv.lint_tex_source(good_tex)
+        self.assertTrue(rep["clean"], msg=json.dumps(rep, indent=2))
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 {
   "name": "scientific-writing",
   "displayName": "Scientific Writing & Figures",
-  "version": "1.3.3",
+  "version": "1.4.0",
   "author": "lrgthu",
   "repository": "https://github.com/lrgthu/scientific-research-skills",
   "description": "Global research communication suite: decoupled scientific-writing skill (Schimel + Gopen & Swan + Anti-Patchwork Holistic Reconstruction) and scientific-figures skill (Wilke's Fundamentals of Data Visualization + Rougier et al.'s Ten Simple Rules for Better Figures + Booktabs table discipline).",

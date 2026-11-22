@@ -28,7 +28,8 @@ Seed Papers / Fine-Grained Research Question
        ├── scientific-writing:
        │    • Conditional Literature Bridge (Calls back to [1] for Intro/Related Work, H1->H2 Pivots & .bib Verify)
        │    • Anti-Patchwork Holistic Reconstruction Protocol (Zero Factual/LaTeX Regression)
-       │    • Macro Storytelling (Schimel OCAR / Telegraphed OCAR / ABDCE / LDR / Hourglass)
+       │    • Prose <-> Visual Symbiosis Laws & LaTeX Callout/Caption Linter (`lint_manuscript_visuals.py`)
+       │    • Macro Storytelling (Schimel OCAR / Telegraphed OCAR / ABDCE / LDR / Hourglass / Rebuttals)
        │    • Reader-Expectation Mechanics (Gopen & Swan Topic -> Action Verb -> Stress + SCFL)
        └── scientific-figures:
             • Perceptual & Scale Laws (Wilke Ch. 1–29 + Rougier Ten Simple Rules)

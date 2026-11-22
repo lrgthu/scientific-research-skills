@@ -28,7 +28,8 @@
        ├── scientific-writing:
        │    • 反向文献按需联动（写 Intro/Related Work、H1->H2 主线转向及定稿 .bib 核验时自动拉起 [1]，纯润色走零延迟快车道）
        │    • 反补丁全局复盘重写协议（新实验迭代后零数据/公式/引文退化的整体重构）
-       │    • 宏观叙事结构（Schimel OCAR / 预示型 OCAR / 基金 ABDCE / Nature LDR / 沙漏对称）
+       │    • 图文表互文八律与 LaTeX 顺序/孤儿图表/结论式图注静态检查器（`lint_manuscript_visuals.py`）
+       │    • 宏观叙事结构（Schimel OCAR / 预示型 OCAR / 基金 ABDCE / Nature LDR / 沙漏对称 / Rebuttal 回复）
        │    • 读者预期句法力学（Gopen & Swan Topic -> 强动作动词 -> Stress 闭合 + SCFL 审校）
        └── scientific-figures:
             • 视觉感知与标度铁律（Wilke 第 1–29 章 + Rougier 等《更佳科研图表十诫》）

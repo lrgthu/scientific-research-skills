@@ -49,15 +49,17 @@ Whenever touching an existing full manuscript or multi-section draft, scan the w
 
 Execute iterative passes from macro to micro (**`S → C → F → L`**), then loop back to **`S`**:
 
-### Pass 1: `S` — Structure (Macro & Modular Strategy)
+### Pass 1: `S` — Structure & Visual Storyboarding (Macro & Modular Strategy)
 - [ ] Macro structure matches audience patience (`OCAR`, Telegraphed `OCAR`, `ABDCE`, `LDR`, or `LD`), and **Hourglass width** matches (`Opening == Resolution`).
 - [ ] Introduction builds a **Funnel** to a concrete Knowledge Gap (free of `"little is known"`, Bizzwidget pitches, and `"Smith found X"` lists), ending in **`"To learn/determine X, we did Y"`**.
-- [ ] Every section, subsection, and paragraph serves **one** function in complete serial arcs (zero intermingled Methods-in-Results or broken spaghetti arcs). Tables place **familiar context on the left** and **new discoveries on the right**.
+- [ ] Every section, subsection, and paragraph serves **one** function in complete serial arcs (zero intermingled Methods-in-Results or broken spaghetti arcs).
+- [ ] **Prose ⇄ Visual Story Spine**: Every figure/table answers one distinct question (zero triple-reporting of identical data across text + table + plot), **every** visual and sub-panel (`Fig. 2a–c`) is cited **strictly in appearance order**, and tables place **familiar context on the left** and **new discoveries on the right**.
 
-### Pass 2: `C` — Clarity & Hidden Logic Debugging (Sentence Anatomy + Scientific Rigor)
+### Pass 2: `C` — Clarity, Visual Symbiosis & Hidden Logic Debugging
 - [ ] **Subject–Verb Syntactic Resolution**: Every Subject is followed **immediately** by its Verb (zero 15+ word interruptions hiding key facts).
 - [ ] **Stress = Syntactic Closure**: New, emphasis-worthy information lands at syntactic closure (`.`, `;`, `:`, `both...and`, or announced lists), free of imposter trailing filler.
 - [ ] **Gopen–Swan Length Law**: Every sentence has *at least as many Stress positions as viable Stress candidates*; long sentences use medial closures (`;`/`:`) or Right-Opening (`LD`) structure.
+- [ ] **Prose ⇄ Visual Division of Labor & Terminology Lock**: Prose states **synthesized conclusions and key effect sizes** without reciting table numbers cell-by-cell; phenomena sit in the Topic (`"(Fig. 2b)"` at end, **zero `"Figure 2 shows..."` Topic waste**); captions are **self-contained with declarative takeaway titles**; and method names/math symbols/units match **100%** between prose and figure/table labels.
 - [ ] **Data, Stats, & Logical Bridges**: Data precede Inference; effect sizes and fit ($R^2$, fold-change, $\Delta$) lead over $p$-values; **any hidden logical leap exposed between adjacent sentences is explicitly bridged**.
 
 ### Pass 3: `F` — Flow (Topic-String Audit & Janus Relay)
@@ -112,17 +114,20 @@ Execute iterative passes from macro to micro (**`S → C → F → L`**), then l
 | **Binary $p$-Value Story** | *Warming significantly increased $\text{CH}_4$ flux ($p < 0.05$), whereas N had no significant effect ($p = 0.07$).* | **Warming increased $\text{CH}_4$ flux 3.4-fold ($p = 0.02$); N addition also raised mean flux 2.3-fold, though with higher spatial variance ($p = 0.07$).** |
 | **Static Verbs + Nominalization** | *First, there is a rapid collapse of representation rank that can be mitigated in part by variance-preserving normalization.* | **First, deep residual blocks rapidly collapse representation rank; this collapse can be mitigated by variance-preserving normalization.** |
 | **`"Yes, but"` Self-Sabotage Ending** | *Our results show the catalyst selectively reduces $\text{CO}_2$ to ethylene, although industrial membrane durability remains to be validated at multi-week scales.* | **While multi-week membrane durability remains to be validated at pilot scale, our catalyst selectively reduces $\text{CO}_2$ to ethylene at 78% Faradaic efficiency, establishing a viable low-overpotential route to green olefins.** |
+| **Pointer-Topic + Table-Number Echo** | *Table 2 shows the latency results. On 8k tokens our method takes 12.1 ms vs. 18.4 ms for Flash-2, on 32k it takes 49.0 ms vs. 98.2 ms, and on 128k it takes 198 ms vs. 612 ms.* | **Sub-quadratic gating scaled linearly with sequence length, cutting decoding latency from 1.5-fold at 8k tokens to 3.1-fold at 128k tokens relative to Flash-2 (Table 2).** |
+| **Descriptive vs. Declarative Caption** | *Figure 4. Relationship between sparse residual ratio and downstream reasoning accuracy across three model sizes.* | **Figure 4. Isolating 0.2% outlier channels recovers full FP16 reasoning accuracy across 7B–70B models.** *(followed by panel keys, sample size $n$, and CI definition)* |
 
 ---
 
-## 4. 8-Dimension Manuscript Review & Patchwork Scorecard
+## 4. 9-Dimension Manuscript Review & Visual Symbiosis Scorecard
 
-When critiquing or auditing any research manuscript or proposal, evaluate and report across these 8 dimensions:
+When critiquing or auditing any research manuscript or proposal, evaluate and report across these 9 dimensions:
 1. **Patchwork Integrity Check**: Is the manuscript a unified story, or does it exhibit post-experiment bolt-ons, sunk-cost clutter, and `Opening ≠ Resolution` drift requiring Tier-3 holistic reconstruction?
 2. **Story & Novelty (`Data → Understanding`)**: Does it advance *Knowledge/Understanding* rather than stopping at an *Information* dump?
 3. **Macro Structure & Hourglass Symmetry**: Does structure (`OCAR` / Telegraphed `OCAR` / `ABDCE` / `LDR`) fit audience patience, with `Opening` width matching `Resolution` width?
 4. **Opening, Funnel, & Challenge**: Concrete Knowledge Gap (no `"little is known"`, Bizzwidget pitch, or `"Smith found X"` wall) leading to `"To learn X, we did Y"`?
-5. **Action, Tables, & Effect-Size Stats**: Point-first `LD` paragraphs, Left-Context → Right-Discovery tables, Data before Inference, and concrete effect sizes/$R^2$ over bare $p$-values?
-6. **Reader-Expectation Sentence Mechanics**: Immediate Subject–Verb resolution, `Old` + story character in Topic, `New` emphasis at syntactic closure (Stress), and Stress candidates $\le$ Stress positions?
-7. **Hidden Logical Gaps & Verb Energy**: Do `Topic → Stress` chains and the Verb-List Audit reveal any unstated mechanistic leaps or static/nominalized verbs?
-8. **`"But, Yes"` Limitations & Resolution**: Caveats handled early and honestly, closing the spiral strongly with zero `"more research is needed"`?
+5. **Action, Effect-Size Stats, & Prose ⇄ Visual Symbiosis**: Does every figure/table answer a distinct question, get cited **100% in sequential order** (`(Fig. 2b)` at closure, zero `"Figure 2 shows..."` Topic waste), pair **self-contained declarative takeaway captions** with takeaway-only prose (zero table-number echoing, zero prose–legend symbol/name drift), and lead with effect sizes/$R^2$ over bare $p$-values?
+6. **Left-to-Right Visual & Tabular Design**: Familiar context/baselines on the left, discoveries on the right, clean Booktabs rules?
+7. **Reader-Expectation Sentence Mechanics**: Immediate Subject–Verb resolution, `Old` + story character in Topic, `New` emphasis at syntactic closure (Stress), and Stress candidates $\le$ Stress positions?
+8. **Hidden Logical Gaps & Verb Energy**: Do `Topic → Stress` chains and the Verb-List Audit reveal any unstated mechanistic leaps or static/nominalized verbs?
+9. **`"But, Yes"` Limitations & Resolution**: Caveats handled early and honestly, closing the spiral strongly with zero `"more research is needed"`?
