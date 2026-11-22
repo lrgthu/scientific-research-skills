@@ -33,6 +33,7 @@ MATRIX_SCRIPT = REPO_ROOT / "plugins/research-literature/skills/literature-evide
 VISUAL_LINT_SCRIPT = REPO_ROOT / "plugins/scientific-writing/skills/scientific-writing/scripts/lint_manuscript_visuals.py"
 SCAFFOLD_SCRIPT = REPO_ROOT / "plugins/scientific-computing/skills/scientific-computing/scripts/scaffold_research_project.py"
 PY_AUDIT_SCRIPT = REPO_ROOT / "plugins/scientific-computing/skills/scientific-computing/scripts/audit_scientific_python.py"
+IDEA_LINT_SCRIPT = REPO_ROOT / "plugins/scientific-ideation/skills/scientific-ideation/scripts/lint_research_ideas.py"
 
 
 def load_module(name: str, path: Path):
@@ -50,6 +51,7 @@ cem = load_module("compile_evidence_matrix", MATRIX_SCRIPT)
 lmv = load_module("lint_manuscript_visuals", VISUAL_LINT_SCRIPT)
 srp = load_module("scaffold_research_project", SCAFFOLD_SCRIPT)
 asp = load_module("audit_scientific_python", PY_AUDIT_SCRIPT)
+lri = load_module("lint_research_ideas", IDEA_LINT_SCRIPT)
 
 
 class TestPluginAndSkillManifests(unittest.TestCase):
@@ -67,6 +69,7 @@ class TestPluginAndSkillManifests(unittest.TestCase):
             "disabled",
         }
         for pdir in (
+            REPO_ROOT / "plugins/scientific-ideation",
             REPO_ROOT / "plugins/research-literature",
             REPO_ROOT / "plugins/scientific-computing",
             REPO_ROOT / "plugins/scientific-writing",
@@ -575,6 +578,91 @@ def run_sim(x: np.ndarray, p: float, a, b, c, d, e, f, cache=[]):
             )
             rep_sup = asp.audit_target(suppressed_py)
             self.assertTrue(rep_sup["clean"], msg=json.dumps(rep_sup, indent=2))
+
+
+class TestScientificIdeationTools(unittest.TestCase):
+    def test_starter_template_passes_cleanly_and_ranks_pareto_front(self) -> None:
+        rep = lri.audit_portfolio(lri._STARTER_TEMPLATE)
+        self.assertTrue(rep["clean"], msg=json.dumps(rep, indent=2))
+        self.assertEqual(rep["counts"]["pareto_optimal"], 2)
+        md = lri.render_markdown_brief(lri._STARTER_TEMPLATE, rep)
+        self.assertIn("Tier 1 (Optimal)", md)
+        self.assertIn("Experimentum Crucis", md)
+
+    def test_ideation_linter_flags_slop_pet_hypothesis_and_dominated_traps(self) -> None:
+        flawed_portfolio = {
+            "topic": "Test topic",
+            "constraints": {"max_crucial_test_hours": 4.0},
+            "candidates": [
+                {
+                    "id": "slop_1",
+                    "title": "Semantic Resonance Pivot Constellation for Reasoning",
+                    "archetype": "algorithmic_mechanism",
+                    "c_abt": "Large language models use transformers and we add a new module and benchmark it.",
+                    "attack_vector": "too short",
+                    "competing_hypotheses": ["Only my pet hypothesis H1 works."],
+                    "proposed_operator": "Compute quantum resonance thought lattice across layers.",
+                    "compute_matched_baseline": "Greedy decoding baseline with matched tokens.",
+                    "verified_prior_art": ["Some paper I vaguely remember from 2023"],
+                    "crucial_experiment": {
+                        "setup": "Full benchmark",
+                        "metric": "Accuracy",
+                        "kill_condition": "none",
+                        "estimated_hours": 48.0,
+                    },
+                    "cloud_pivot_plan": "Analyze failure modes carefully and adjust.",
+                    "scores": {
+                        "knowledge_gain": 3.5,
+                        "feasibility": 4.0,
+                        "attack_clarity": 4.0,
+                        "scoop_safety": 5.0,
+                    },
+                },
+                {
+                    "id": "slop_2",
+                    "title": "Semantic Resonance Pivot Constellation for Better Reasoning",
+                    "archetype": "algorithmic_mechanism",
+                    "c_abt": "Models struggle on hard tasks, however our module fixes it.",
+                    "attack_vector": "Valid twenty-plus character attack description here.",
+                    "competing_hypotheses": ["H1: works", "H2: baseline works"],
+                    "proposed_operator": "Compute quantum resonance thought lattice across transformer layers.",
+                    "compute_matched_baseline": "Matched token budget self-consistency.",
+                    "verified_prior_art": ["arXiv:2203.11171"],
+                    "crucial_experiment": {
+                        "setup": "100 GSM8K items",
+                        "metric": "Exact match",
+                        "kill_condition": "Kill if <2% gain over self-consistency at k=5.",
+                        "estimated_hours": 1.0,
+                    },
+                    "cloud_pivot_plan": "Pivot to error taxonomy of self-consistency votes.",
+                    "scores": {
+                        "knowledge_gain": 8.0,
+                        "feasibility": 8.5,
+                        "attack_clarity": 8.0,
+                        "scoop_safety": 7.5,
+                    },
+                },
+            ],
+        }
+        rep = lri.audit_portfolio(flawed_portfolio)
+        self.assertFalse(rep["clean"])
+        codes = {iss["code"] for iss in rep["issues"]}
+        expected = {
+            "MISSING_ABT_CONTRADICTION",
+            "SINGLE_PET_HYPOTHESIS",
+            "VAGUE_OR_MISSING_SPEC",
+            "UNGROUNDED_PRIOR_ART",
+            "MISSING_KILL_CONDITION",
+            "CRUCIAL_TEST_TOO_SLOW",
+            "ANTHROPOMORPHIC_OR_BUZZWORD_SLOP",
+            "HARD_LOW_GAIN_TRAP",
+            "DUPLICATE_IDEA_PAIR",
+        }
+        self.assertTrue(expected.issubset(codes), msg=f"Missing codes: {expected - codes}")
+        # slop_2 (8.5, 8.0) strictly dominates slop_1 (4.0, 3.5) -> tiers 1 and 2!
+        by_id = {r["id"]: r for r in rep["ranked_candidates"]}
+        self.assertEqual(by_id["slop_2"]["pareto_tier"], 1)
+        self.assertEqual(by_id["slop_1"]["pareto_tier"], 2)
 
 
 if __name__ == "__main__":

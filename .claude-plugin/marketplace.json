@@ -5,28 +5,35 @@
     "url": "https://github.com/lrgthu"
   },
   "metadata": {
-    "description": "End-to-end open-stack scientific research skills: citation graph lineage, stance/retraction auditing, LaTeX/full-text evidence matrices, reproducible scientific Python & Google Style engineering, anti-patchwork scholarly writing, cross-table/protocol numeric consistency auditing, and 5-gate assertion-evidence figure/table engineering.",
-    "version": "1.8.0"
+    "description": "Full-lifecycle open-stack scientific research skills (Stages 0–3): Strong Inference problem selection & Pareto ideation, citation graph lineage & retraction auditing, LaTeX/full-text evidence matrices, reproducible Google-style scientific Python, and anti-patchwork scholarly writing & 5-gate assertion-evidence figures.",
+    "version": "2.0.0"
   },
   "plugins": [
     {
+      "name": "scientific-ideation",
+      "source": "./plugins/scientific-ideation",
+      "description": "Stage-0 research problem selection, competing-hypothesis framing, anti-scoop novelty grounding, reviewer murder-board pre-mortem, and 1–4h crucial falsification experiment design synthesizing Platt (1964), Hamming (1986), Alon (2009), Lipton & Steinhardt (2018), and Si et al. (ICLR 2025).",
+      "version": "1.0.0",
+      "license": "MIT"
+    },
+    {
       "name": "research-literature",
       "source": "./plugins/research-literature",
-      "description": "Open-stack scholarly literature intelligence: seed-to-lineage mapping (ResearchRabbit/Litmaps), interactive HTML citation maps, verbatim citation context & retraction auditing (Scite + Crossref Retraction Watch + arXiv LaTeX \\cite{} parser), iterative deep recall & parallel evidence matrices (Undermind + Elicit), and zero-hallucination .bib & OpenReview verification.",
+      "description": "Stage-1 open-stack scholarly literature intelligence: seed-to-lineage mapping (ResearchRabbit/Litmaps), interactive HTML citation maps, verbatim citation context & retraction auditing (Scite + Crossref Retraction Watch + arXiv LaTeX \\cite{} parser), iterative deep recall & parallel evidence matrices (Undermind + Elicit), and zero-hallucination .bib & OpenReview verification.",
       "version": "1.1.0",
       "license": "MIT"
     },
     {
       "name": "scientific-computing",
       "source": "./plugins/scientific-computing",
-      "description": "Reproducible scientific computing and Google-style Python engineering suite synthesizing Wilson et al.'s Best Practices (2014) and Good Enough Practices in Scientific Computing (2017) with the Google Python Style Guide, including research repository scaffolding and an AST-based scientific Python static auditor.",
+      "description": "Stage-2 reproducible scientific computing and Google-style Python engineering suite synthesizing Wilson et al.'s Best Practices (2014) and Good Enough Practices in Scientific Computing (2017) with the Google Python Style Guide, including research repository scaffolding and an AST-based scientific Python static auditor.",
       "version": "1.0.0",
       "license": "MIT"
     },
     {
       "name": "scientific-writing",
       "source": "./plugins/scientific-writing",
-      "description": "Scholarly writing, scientific storytelling & publication figure suite: Anti-Patchwork Holistic Reconstruction, Cross-Artifact Numeric/Protocol Consistency Audit, Olson ABT/Narrative Spectrum, 5-Gate Assertion-Evidence Figure/Table Audit (Doumont, Alley, Frankel & DePace, Cargill), Schimel OCAR, Gopen & Swan mechanics, and Wilke + Rougier figure & Booktabs engineering.",
+      "description": "Stage-3 scholarly writing, scientific storytelling & publication figure suite: Anti-Patchwork Holistic Reconstruction, Cross-Artifact Numeric/Protocol Consistency Audit, Olson ABT/Narrative Spectrum, 5-Gate Assertion-Evidence Figure/Table Audit (Doumont, Alley, Frankel & DePace, Cargill), Schimel OCAR, Gopen & Swan mechanics, and Wilke + Rougier figure & Booktabs engineering.",
       "version": "1.7.0",
       "license": "MIT"
     }

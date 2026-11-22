@@ -9,12 +9,18 @@
 
 面向 **Google Antigravity**、**Claude Code**、**OpenAI Codex CLI**、**Gemini CLI** 与 **Cursor** 的**零订阅费、端到端科研智能体技能套件（Skill Suite）**。
 
-当前大多数 AI 辅助科研工具存在明显的“中间层断层”：上游只有单次关键词检索脚本，文献层被迫依赖多个割裂且昂贵的商业 SaaS（**Undermind**、**ResearchRabbit**、**Scite**、**Elicit**、**SciSpace**），实验代码缺乏可复现性与数值防错规范，下游则是“打补丁式”的碎片化 AI 润色。本项目将**文献调研 → 科学计算与实验工程 → 论文架构与出版级图表**完整科研闭环沉淀为 **3 个按需加载的解耦插件**（共 `5` 个核心 Skill、`7` 个基于 `uv` 的零配置 Python CLI，以及反幻觉引文、可复现科学计算与反补丁写作全局护栏规则）：
+当前大多数 AI 辅助科研工具存在明显的链路断层：起点依赖大模型凭空“拍脑袋”拼凑热词（容易撞车或隐含不切实际的先知假设），文献层被迫依赖多个割裂且昂贵的商业 SaaS（**Undermind**、**ResearchRabbit**、**Scite**、**Elicit**、**SciSpace**），实验代码缺乏可复现性与数值防错规范，终点则是“打补丁式”的碎片化 AI 润色。本项目将**「第 0 环：选题品味与强推论证伪 → 第 1 环：文献图谱与源码证据 → 第 2 环：可复现科学计算 → 第 3 环：论文重构与出版级图表」**完整科研四段闭环沉淀为 **4 个按需加载的解耦插件**（共 `6` 个核心 Skill、`8` 个基于 `uv` 的零配置 Python CLI，以及反空想、反幻觉、可复现与反补丁全局护栏规则）：
 
 ```text
-种子论文 / 细粒度研究问题
+原始好奇心 / 种子论文 / 实验反常现象
  │
- ├──► [1. research-literature]   （100% 开源学术图谱与源码级证据层 —— 零商业订阅）
+ ├──► [0. scientific-ideation]   （Stage 0：选题品味、强推论竞争假说与快速证伪预检）
+ │     └── scientific-ideation:
+ │          • Hamming 破局抓手（Attack Vector）与 Alon 二维「可行性 × 知识增量」帕累托前沿筛选
+ │          • Platt 强推论双竞争假说（H1 vs. H2/H0）与 AI 选题七大翻车防御（Si et al. ICLR 2025）
+ │          • 精确算子 + 等算力极简基线 + <=4h 关键证伪实验（Kill Condition）+ 迷雾转向预案（`lint_research_ideas.py`）
+ │
+ ├──► [1. research-literature]   （Stage 1：100% 开源学术图谱与源码级证据层 —— 零商业订阅）
  │     ├── scholarly-graph-audit:
  │     │    • 种子演进主线测绘（共引奠基祖先 + 耦合活跃前沿 + SPECTER2 正负样本语义近邻）
  │     │    • 交互式引文图谱编译（Timeline 年份轴 / Force 力导向双视图，支持离线浏览器直开）
@@ -24,14 +30,14 @@
  │          • 多视角迭代深挖检索与正/负种子滚雪球收敛协议（吸收 Undermind 方法论）
  │          • 本地 arXiv .tar.gz LaTeX 源码解包 + 并行子智能体结构化证据矩阵（吸收 Elicit）
  │
- ├──► [2. scientific-computing]  （可复现科学计算工程与 Google 规范科研 Python）
+ ├──► [2. scientific-computing]  （Stage 2：可复现科学计算工程与 Google 规范科研 Python）
  │     └── scientific-computing:
  │          • 标准目录与数据洁癖（`data/raw/` 严格只读 -> `src/` 核心算法库 -> `scripts/` 驱动脚本 -> `results/`）
  │          • Tidy Data 规范、语义化文件命名（禁 `fig3a.png`/`result1.csv`）与实验溯源 JSON（`scaffold_research_project.py`）
  │          • 面向 NumPy/SciPy/PyTorch/JAX 适配的 Google Python Style（防 `NaN` 漏检区间校验、`.size` 判空、§3.16.5 论文公式命名豁免）
  │          • 解析极限/守恒律测试预言机、独立 `default_rng(seed)` 随机流与 AST 静态审计器（`audit_scientific_python.py`）
  │
- └──► [3. scientific-writing]    （学术论文架构重构与出版级图表工程 —— 与 [1]/[2] 按需联动 ⇄）
+ └──► [3. scientific-writing]    （Stage 3：学术论文架构重构与出版级图表工程 —— 与上游双向联动 ⇄）
        ├── scientific-writing:
        │    • 反向文献按需联动（写 Intro/Related Work、H1->H2 主线转向及定稿 .bib 核验时自动拉起 [1]，纯润色走零延迟快车道）
        │    • 反补丁全局复盘重写协议（新实验迭代后零数据/公式/引文退化的整体重构）
@@ -129,6 +135,11 @@ uv run "$WF_CLI/compile_evidence_matrix.py" ./literature/extractions.json --out-
 SCICOMP_CLI="plugins/scientific-computing/skills/scientific-computing/scripts"
 uv run "$SCICOMP_CLI/scaffold_research_project.py" ./my-experiment --author "Your Lab"
 uv run "$SCICOMP_CLI/audit_scientific_python.py" --strict ./my-experiment
+
+# 6. 第 0 环候选 Idea 强推论完整性校验、反黑话扫描与 Alon 帕累托决策表生成
+IDEATION_CLI="plugins/scientific-ideation/skills/scientific-ideation/scripts/lint_research_ideas.py"
+uv run "$IDEATION_CLI" --init-template /tmp/candidate_ideas.json
+uv run "$IDEATION_CLI" /tmp/candidate_ideas.json --markdown-out ./ideation_murder_board.md --strict
 ```
 
 *（可选提速配置：如需在超大规模批处理下获得更高专属配额，可在 `~/.env` 中按需配置免费的 `S2_API_KEY`、`OPENALEX_API_KEY` 与 `CROSSREF_MAILTO`，脚本会自动静默读取。）*
@@ -138,6 +149,7 @@ uv run "$SCICOMP_CLI/audit_scientific_python.py" --strict ./my-experiment
 ## 方法论致谢与开源协议
 
 本套件中的规则、工作流与代码均为 Clean-Room 原创工程实现，方法论体系致谢以下经典著作与开放学术基础设施：
+- **选题品味、强推论与科研构思（Stage 0）**：John R. Platt, *"Strong Inference"* (*Science*, 1964)；Richard W. Hamming, *"You and Your Research"* (1986)；Uri Alon, *"How To Choose a Good Scientific Problem"* (*Molecular Cell*, 2009)；Zachary C. Lipton & Jacob Steinhardt, *"Troubling Trends in Machine Learning Scholarship"* (*ACM Queue*, 2019, `arXiv:1807.03341`)；Chenglei Si, Diyi Yang & Tatsunori Hashimoto, *"Can LLMs Generate Novel Research Ideas?"* (*ICLR*, 2025, `arXiv:2409.04109`)。
 - **科学计算工程与 Python 编码规范**：Greg Wilson et al., *"Best Practices for Scientific Computing"* (*PLOS Biology*, 2014, `arXiv:1210.0530`, CC BY)；Greg Wilson et al., *"Good Enough Practices in Scientific Computing"* (*PLOS Computational Biology*, 2017, `arXiv:1609.00037`, CC BY)；Google, *[Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)* (CC BY 3.0)。
 - **学术叙事与句法结构**：Joshua Schimel, *Writing Science* (2012)；Margaret Cargill & Patrick O'Connor, *Writing Scientific Research Articles* (3rd ed., 2021)；Randy Olson, *Houston, We Have a Narrative: Why Science Needs Story* (2015)；George D. Gopen & Judith A. Swan, *"The Science of Scientific Writing"* (1990)。
 - **图表论证检视、可视化与制表规范**：Jean-luc Doumont, *Trees, Maps, and Theorems* (2009)；Michael Alley, *The Craft of Scientific Writing* / *Presentations* (Assertion-Evidence)；Felice C. Frankel & Angela H. DePace, *Visual Strategies* (2012)；Claus O. Wilke, *Fundamentals of Data Visualization* (2019)；Nicolas P. Rougier et al., *"Ten Simple Rules for Better Figures"* (*PLOS Computational Biology*, 2014, CC BY 4.0)；Okabe & Ito 色觉安全调色板。

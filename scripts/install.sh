@@ -72,7 +72,7 @@ pattern = re.compile(
 )
 
 if pattern.search(existing):
-    updated = pattern.sub(block, existing)
+    updated = pattern.sub(lambda _m: block, existing)
 else:
     sep = "\n\n---\n\n" if existing.strip() else ""
     updated = existing.rstrip() + sep + block + "\n"
@@ -99,15 +99,19 @@ if [[ "$MODE" == "check" ]]; then
   fi
   echo "=== Installed Locations ==="
   for d in \
+    "$HOME/.gemini/config/plugins/scientific-ideation" \
     "$HOME/.gemini/config/plugins/research-literature" \
     "$HOME/.gemini/config/plugins/scientific-computing" \
     "$HOME/.gemini/config/plugins/scientific-writing" \
+    "$HOME/.claude/skills/scientific-ideation" \
     "$HOME/.claude/skills/scholarly-graph-audit" \
     "$HOME/.claude/skills/scientific-computing" \
     "$HOME/.claude/skills/scientific-writing" \
+    "$HOME/.codex/skills/scientific-ideation" \
     "$HOME/.codex/skills/scholarly-graph-audit" \
     "$HOME/.codex/skills/scientific-computing" \
     "$HOME/.codex/skills/scientific-writing" \
+    "$HOME/.cursor/skills/scientific-ideation" \
     "$HOME/.cursor/skills/scholarly-graph-audit" \
     "$HOME/.cursor/skills/scientific-computing" \
     "$HOME/.cursor/skills/scientific-writing"; do
@@ -130,7 +134,7 @@ fi
 install_antigravity() {
   local dest="$HOME/.gemini/config/plugins"
   mkdir -p "$dest"
-  for p in research-literature scientific-computing scientific-writing; do
+  for p in scientific-ideation research-literature scientific-computing scientific-writing; do
     rm -rf "$dest/$p"
     cp -R "$REPO_ROOT/plugins/$p" "$dest/$p"
     find "$dest/$p" -name "__pycache__" -type d -prune -exec rm -rf {} +
@@ -146,6 +150,7 @@ install_flat_skills() {
   local dest="$2"
   mkdir -p "$dest"
   for skill_dir in \
+    "$REPO_ROOT/plugins/scientific-ideation/skills/scientific-ideation" \
     "$REPO_ROOT/plugins/research-literature/skills/scholarly-graph-audit" \
     "$REPO_ROOT/plugins/research-literature/skills/literature-evidence-workflow" \
     "$REPO_ROOT/plugins/scientific-computing/skills/scientific-computing" \

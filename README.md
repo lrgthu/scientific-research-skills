@@ -9,12 +9,18 @@
 
 An end-to-end, **zero-subscription open-stack research skill suite** for coding and research agents (**Google Antigravity**, **Claude Code**, **OpenAI Codex CLI**, **Gemini CLI**, and **Cursor**).
 
-Most AI research workflows break in the middle: researchers juggle single-shot keyword search on one side, fragmented paid SaaS tabs (**Undermind**, **ResearchRabbit**, **Scite**, **Elicit**, **SciSpace**) in the middle, ad-hoc unseeded experiment scripts, and patchwork LLM prose edits on the other. **`scientific-research-skills`** unifies the entire research lifecycle into **three decoupled, on-demand plugins** (`5` skills + `7` standalone `uv` Python CLIs + ironclad anti-hallucination, reproducibility, & anti-patchwork rules):
+Most AI research workflows break in the middle: researchers juggle naive LLM armchair "brainstorming" at the start, fragmented paid SaaS tabs (**Undermind**, **ResearchRabbit**, **Scite**, **Elicit**, **SciSpace**) in literature review, ad-hoc unseeded experiment scripts in coding, and patchwork LLM prose edits at the end. **`scientific-research-skills`** unifies the entire **Stage 0 → Stage 3** scientific method into **four decoupled, on-demand plugins** (`6` skills + `8` standalone `uv` Python CLIs + ironclad anti-slop, anti-hallucination, reproducibility, & anti-patchwork rules):
 
 ```text
-Seed Papers / Fine-Grained Research Question
+Raw Curiosity / Seed Papers / Observed Anomaly
  │
- ├──► [1. research-literature]   (100% Open Scholarly Stack — $0 SaaS Subscriptions)
+ ├──► [0. scientific-ideation]   (Stage 0: Problem Taste, Strong Inference & Rapid Falsification)
+ │     └── scientific-ideation:
+ │          • Hamming Attack Vector ("Why Now?") & Alon 2D `Feasibility × Knowledge Gain` Pareto Frontier
+ │          • Platt Competing Hypotheses (H1 vs. H2/H0) & Anti-LLM-Slop Guardrails (Si et al. ICLR 2025)
+ │          • Exact Operator + Iso-Compute Baseline + <=4h Crucial Kill Test + Cloud Pivot (`lint_research_ideas.py`)
+ │
+ ├──► [1. research-literature]   (Stage 1: 100% Open Scholarly Graph & Full-Text Evidence — $0 SaaS)
  │     ├── scholarly-graph-audit:
  │     │    • Seed-to-Lineage Graph (Co-Cited Roots + Coupling Frontier + SPECTER2 Siblings)
  │     │    • Interactive HTML Citation Map (Timeline X=Year & Force Network, Offline-Ready)
@@ -24,14 +30,14 @@ Seed Papers / Fine-Grained Research Question
  │          • Iterative Multi-Hop Deep Recall with Positive/Negative Seeds (Undermind Pattern)
  │          • Local arXiv .tar.gz LaTeX / OA PDF Unpacker + Parallel Subagent Evidence Matrix (Elicit++)
  │
- ├──► [2. scientific-computing]  (Reproducible Research Engineering & Google-Style Scientific Python)
+ ├──► [2. scientific-computing]  (Stage 2: Reproducible Engineering & Google-Style Scientific Python)
  │     └── scientific-computing:
  │          • Canonical Layout (`data/raw/` Read-Only -> `src/` Guts -> `scripts/` Drivers -> `results/`)
  │          • Tidy Data, Semantic Artifact Naming, & Provenance JSON Sidecars (`scaffold_research_project.py`)
  │          • Google Python Style Adapted for NumPy/SciPy/PyTorch/JAX (`NaN`-Safe Guards, `.size` Truthiness, §3.16.5 Math)
  │          • Analytical/Conservation Oracles, Isolated `default_rng`, & AST Static Auditor (`audit_scientific_python.py`)
  │
- └──► [3. scientific-writing]    (Manuscript Architecture & Publication Visuals — Bidirectional ⇄ Bridge)
+ └──► [3. scientific-writing]    (Stage 3: Manuscript Architecture & Publication Visuals — Bidirectional ⇄ Bridge)
        ├── scientific-writing:
        │    • Conditional Literature Bridge (Calls back to [1] for Intro/Related Work, H1->H2 Pivots & .bib Verify)
        │    • Anti-Patchwork Holistic Reconstruction Protocol (Zero Factual/LaTeX Regression)
@@ -64,8 +70,17 @@ Seed Papers / Fine-Grained Research Question
 ```text
 scientific-research-skills/
 ├── .claude-plugin/marketplace.json      # Claude Code plugin marketplace manifest
+├── rules/GLOBAL_RESEARCH_ROUTER.md      # Optional Always-On Stage 0–3 global research router (--pin-global)
 ├── scripts/install.sh                   # Cross-agent installer (antigravity | claude | codex | cursor | all)
 └── plugins/
+    ├── scientific-ideation/             # Plugin 0: Problem Taste, Strong Inference & Pareto Ideation
+    │   ├── plugin.json
+    │   ├── rules/AGENTS.md              # Anti-armchair-slop, competing hypotheses & 1–4h kill-test rules
+    │   └── skills/
+    │       └── scientific-ideation/
+    │           ├── SKILL.md
+    │           ├── references/{problem-taste-and-pareto-selection.md, strong-inference-and-anti-slop-audit.md, crucial-experiment-and-murder-board.md}
+    │           └── scripts/lint_research_ideas.py
     ├── research-literature/             # Plugin 1: Literature Graph, Audit & Evidence Matrices
     │   ├── plugin.json
     │   ├── rules/AGENTS.md              # Zero-hallucination .bib, retraction & provenance guardrails
@@ -206,13 +221,33 @@ uv run "$SCICOMP_CLI/scaffold_research_project.py" ./my-experiment --author "You
 uv run "$SCICOMP_CLI/audit_scientific_python.py" --strict ./my-experiment
 ```
 
+### 6. Validate & Pareto-Rank Candidate Research Ideas (Stage-0 Strong Inference & Murder Board)
+```bash
+IDEATION_CLI="plugins/scientific-ideation/skills/scientific-ideation/scripts/lint_research_ideas.py"
+
+# Generate a structured candidate-portfolio JSON template
+uv run "$IDEATION_CLI" --init-template /tmp/candidate_ideas.json
+
+# Validate competing hypotheses, anti-slop terminology, & kill conditions, and render an Alon Pareto Murder-Board brief
+uv run "$IDEATION_CLI" /tmp/candidate_ideas.json \
+  --markdown-out ./ideation_murder_board.md \
+  --strict
+```
+
 *(Optional Rate-Limit Keys)*: For heavy batch workloads, literature scripts automatically pick up `S2_API_KEY`, `OPENALEX_API_KEY`, and `CROSSREF_MAILTO` from `~/.env` if defined.
 
 ---
 
 ## Methodological Foundations & Credits
 
-The rules, workflows, and presets in this repository are clean-room operationalizations inspired by foundational works in scientific computing, scientific communication, data visualization, and open bibliometrics:
+The rules, workflows, and presets in this repository are clean-room operationalizations inspired by foundational works in scientific inquiry, scientific computing, scientific communication, data visualization, and open bibliometrics:
+
+- **Problem Selection, Strong Inference & Research Ideation**:
+  - John R. Platt, *"Strong Inference,"* *Science* 146(3642), 347–353 (1964, `10.1126/science.146.3642.347`).
+  - Richard W. Hamming, *"You and Your Research,"* Bell Communications Research Colloquium Seminar (March 7, 1986).
+  - Uri Alon, *"How To Choose a Good Scientific Problem,"* *Molecular Cell* 35(6), 726–728 (2009, `10.1016/j.molcel.2009.09.013`).
+  - Zachary C. Lipton & Jacob Steinhardt, *"Troubling Trends in Machine Learning Scholarship,"* *ACM Queue* 17(1), 45–77 (2019, `arXiv:1807.03341`).
+  - Chenglei Si, Diyi Yang & Tatsunori Hashimoto, *"Can LLMs Generate Novel Research Ideas? A Large-Scale Human Study with 100+ NLP Researchers,"* *ICLR* (2025, `arXiv:2409.04109`).
 
 - **Scientific Computing, Reproducibility & Python Engineering**:
   - Greg Wilson, D. A. Aruliah, C. Titus Brown, Neil P. Chue Hong, Matt Davis, Richard T. Guy, Steven H. D. Haddock, Kathryn D. Huff, Ian M. Mitchell, Mark D. Plumbley, Ben Waugh, Ethan P. White & Paul Wilson, *"Best Practices for Scientific Computing,"* *PLOS Biology* 12(1): e1001745 (2014, `arXiv:1210.0530`, CC BY).

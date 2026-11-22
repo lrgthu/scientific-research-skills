@@ -1,0 +1,14 @@
+{
+  "name": "scientific-ideation",
+  "displayName": "Scientific Ideation & Strong Inference",
+  "version": "1.0.0",
+  "author": "lrgthu",
+  "repository": "https://github.com/lrgthu/scientific-research-skills",
+  "description": "Stage-0 research problem selection, hypothesis generation, anti-scoop novelty grounding, and rapid falsification suite synthesizing Platt's Strong Inference (1964), Hamming's Attack Vector (1986), Alon's Feasibility-Interest Pareto Frontier (2009), Lipton & Steinhardt's Scholarship Rigor (2018), and Si et al.'s Empirical AI Ideation Guardrails (ICLR 2025).",
+  "logo": "assets/logo.svg",
+  "suggestedPrompts": [
+    "Brainstorm 3 orthogonal, scoop-checked research ideas on this topic with competing hypotheses and 1-hour crucial falsification experiments",
+    "Run a Strong Inference + Reviewer Murder-Board pre-mortem on my research idea and map its Alon Pareto trade-offs",
+    "Turn observed baseline failure modes from recent papers into falsifiable mechanism hypotheses and compute-matched baselines"
+  ]
+}
