@@ -20,7 +20,7 @@
       "name": "scientific-writing",
       "source": "./plugins/scientific-writing",
       "description": "Scholarly writing & publication figure suite: Anti-Patchwork Holistic Reconstruction, Schimel OCAR/Funnel/SUCCES storytelling, Gopen & Swan reader-expectation mechanics, and Wilke + Rougier publication figure & Booktabs table engineering.",
-      "version": "1.3.1",
+      "version": "1.3.2",
       "license": "MIT"
     }
   ]

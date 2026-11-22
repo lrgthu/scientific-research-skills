@@ -23,8 +23,9 @@
  │          • 多视角迭代深挖检索与正/负种子滚雪球收敛协议（吸收 Undermind 方法论）
  │          • 本地 arXiv .tar.gz LaTeX 源码解包 + 并行子智能体结构化证据矩阵（吸收 Elicit）
  │
- └──► [2. scientific-writing]   （学术论文架构重构与出版级图表工程）
+ └──► [2. scientific-writing]   （学术论文架构重构与出版级图表工程 —— 与 [1] 双向按需联动 ⇄）
        ├── scientific-writing:
+       │    • 反向文献按需联动（写 Intro/Related Work、H1->H2 主线转向及定稿 .bib 核验时自动拉起 [1]，纯润色走零延迟快车道）
        │    • 反补丁全局复盘重写协议（新实验迭代后零数据/公式/引文退化的整体重构）
        │    • 宏观叙事结构（Schimel OCAR / 预示型 OCAR / 基金 ABDCE / Nature LDR / 沙漏对称）
        │    • 读者预期句法力学（Gopen & Swan Topic -> 强动作动词 -> Stress 闭合 + SCFL 审校）

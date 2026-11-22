@@ -23,8 +23,9 @@ Seed Papers / Fine-Grained Research Question
  │          • Iterative Multi-Hop Deep Recall with Positive/Negative Seeds (Undermind Pattern)
  │          • Local arXiv .tar.gz LaTeX / OA PDF Unpacker + Parallel Subagent Evidence Matrix (Elicit++)
  │
- └──► [2. scientific-writing]   (Manuscript Architecture & Publication Visuals)
+ └──► [2. scientific-writing]   (Manuscript Architecture & Publication Visuals — Bidirectional ⇄ Bridge)
        ├── scientific-writing:
+       │    • Conditional Literature Bridge (Calls back to [1] for Intro/Related Work, H1->H2 Pivots & .bib Verify)
        │    • Anti-Patchwork Holistic Reconstruction Protocol (Zero Factual/LaTeX Regression)
        │    • Macro Storytelling (Schimel OCAR / Telegraphed OCAR / ABDCE / LDR / Hourglass)
        │    • Reader-Expectation Mechanics (Gopen & Swan Topic -> Action Verb -> Stress + SCFL)
