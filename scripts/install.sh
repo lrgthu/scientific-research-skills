@@ -51,10 +51,14 @@ if [[ "$MODE" == "check" ]]; then
   echo "=== Installed Locations ==="
   for d in \
     "$HOME/.gemini/config/plugins/research-literature" \
+    "$HOME/.gemini/config/plugins/scientific-computing" \
     "$HOME/.gemini/config/plugins/scientific-writing" \
     "$HOME/.claude/skills/scholarly-graph-audit" \
+    "$HOME/.claude/skills/scientific-computing" \
     "$HOME/.codex/skills/scholarly-graph-audit" \
-    "$HOME/.cursor/skills/scholarly-graph-audit"; do
+    "$HOME/.codex/skills/scientific-computing" \
+    "$HOME/.cursor/skills/scholarly-graph-audit" \
+    "$HOME/.cursor/skills/scientific-computing"; do
     if [[ -d "$d" ]]; then
       echo "  [PRESENT] $d"
     fi
@@ -65,9 +69,10 @@ fi
 install_antigravity() {
   local dest="$HOME/.gemini/config/plugins"
   mkdir -p "$dest"
-  for p in research-literature scientific-writing; do
+  for p in research-literature scientific-computing scientific-writing; do
     rm -rf "$dest/$p"
     cp -R "$REPO_ROOT/plugins/$p" "$dest/$p"
+    find "$dest/$p" -name "__pycache__" -type d -prune -exec rm -rf {} +
     echo "[antigravity] Synced plugin -> $dest/$p"
   done
 }
@@ -79,12 +84,14 @@ install_flat_skills() {
   for skill_dir in \
     "$REPO_ROOT/plugins/research-literature/skills/scholarly-graph-audit" \
     "$REPO_ROOT/plugins/research-literature/skills/literature-evidence-workflow" \
+    "$REPO_ROOT/plugins/scientific-computing/skills/scientific-computing" \
     "$REPO_ROOT/plugins/scientific-writing/skills/scientific-writing" \
     "$REPO_ROOT/plugins/scientific-writing/skills/scientific-figures"; do
     local sname
     sname="$(basename "$skill_dir")"
     rm -rf "$dest/$sname"
     cp -R "$skill_dir" "$dest/$sname"
+    find "$dest/$sname" -name "__pycache__" -type d -prune -exec rm -rf {} +
     echo "[$label] Synced skill -> $dest/$sname"
   done
 }

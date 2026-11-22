@@ -9,12 +9,12 @@
 
 面向 **Google Antigravity**、**Claude Code**、**OpenAI Codex CLI**、**Gemini CLI** 与 **Cursor** 的**零订阅费、端到端科研智能体技能套件（Skill Suite）**。
 
-当前大多数 AI 辅助科研工具存在明显的“中间层断层”：上游只有单次关键词检索脚本，中间层被迫依赖多个割裂且昂贵的商业 SaaS（**Undermind**、**ResearchRabbit**、**Scite**、**Elicit**、**SciSpace**），下游则是“打补丁式”的碎片化 AI 润色。本项目将完整科研闭环沉淀为 **2 个按需加载的解耦插件**（共 `4` 个核心 Skill、`4` 个基于 `uv` 的零配置 Python CLI，以及反幻觉引文与反补丁写作全局护栏规则）：
+当前大多数 AI 辅助科研工具存在明显的“中间层断层”：上游只有单次关键词检索脚本，文献层被迫依赖多个割裂且昂贵的商业 SaaS（**Undermind**、**ResearchRabbit**、**Scite**、**Elicit**、**SciSpace**），实验代码缺乏可复现性与数值防错规范，下游则是“打补丁式”的碎片化 AI 润色。本项目将**文献调研 → 科学计算与实验工程 → 论文架构与出版级图表**完整科研闭环沉淀为 **3 个按需加载的解耦插件**（共 `5` 个核心 Skill、`7` 个基于 `uv` 的零配置 Python CLI，以及反幻觉引文、可复现科学计算与反补丁写作全局护栏规则）：
 
 ```text
 种子论文 / 细粒度研究问题
  │
- ├──► [1. research-literature]  （100% 开源学术图谱与源码级证据层 —— 零商业订阅）
+ ├──► [1. research-literature]   （100% 开源学术图谱与源码级证据层 —— 零商业订阅）
  │     ├── scholarly-graph-audit:
  │     │    • 种子演进主线测绘（共引奠基祖先 + 耦合活跃前沿 + SPECTER2 正负样本语义近邻）
  │     │    • 交互式引文图谱编译（Timeline 年份轴 / Force 力导向双视图，支持离线浏览器直开）
@@ -24,7 +24,14 @@
  │          • 多视角迭代深挖检索与正/负种子滚雪球收敛协议（吸收 Undermind 方法论）
  │          • 本地 arXiv .tar.gz LaTeX 源码解包 + 并行子智能体结构化证据矩阵（吸收 Elicit）
  │
- └──► [2. scientific-writing]   （学术论文架构重构与出版级图表工程 —— 与 [1] 双向按需联动 ⇄）
+ ├──► [2. scientific-computing]  （可复现科学计算工程与 Google 规范科研 Python）
+ │     └── scientific-computing:
+ │          • 标准目录与数据洁癖（`data/raw/` 严格只读 -> `src/` 核心算法库 -> `scripts/` 驱动脚本 -> `results/`）
+ │          • Tidy Data 规范、语义化文件命名（禁 `fig3a.png`/`result1.csv`）与实验溯源 JSON（`scaffold_research_project.py`）
+ │          • 面向 NumPy/SciPy/PyTorch/JAX 适配的 Google Python Style（防 `NaN` 漏检区间校验、`.size` 判空、§3.16.5 论文公式命名豁免）
+ │          • 解析极限/守恒律测试预言机、独立 `default_rng(seed)` 随机流与 AST 静态审计器（`audit_scientific_python.py`）
+ │
+ └──► [3. scientific-writing]    （学术论文架构重构与出版级图表工程 —— 与 [1]/[2] 按需联动 ⇄）
        ├── scientific-writing:
        │    • 反向文献按需联动（写 Intro/Related Work、H1->H2 主线转向及定稿 .bib 核验时自动拉起 [1]，纯润色走零延迟快车道）
        │    • 反补丁全局复盘重写协议（新实验迭代后零数据/公式/引文退化的整体重构）
@@ -117,6 +124,11 @@ uv run "$GRAPH_CLI/scholarly_graph.py" bib-verify \
 # 4. 批量解包候选论文 arXiv LaTeX 源码并编译出版级 Booktabs 对比表
 uv run "$WF_CLI/unpack_paper_corpus.py" --from-json /tmp/dpo_lineage.json --out-dir ./literature/corpus
 uv run "$WF_CLI/compile_evidence_matrix.py" ./literature/extractions.json --out-dir ./literature/matrix
+
+# 5. 一键初始化可复现科研 Python 仓库 + 静态审计数值隐患与 Google 风格违规
+SCICOMP_CLI="plugins/scientific-computing/skills/scientific-computing/scripts"
+uv run "$SCICOMP_CLI/scaffold_research_project.py" ./my-experiment --author "Your Lab"
+uv run "$SCICOMP_CLI/audit_scientific_python.py" --strict ./my-experiment
 ```
 
 *（可选提速配置：如需在超大规模批处理下获得更高专属配额，可在 `~/.env` 中按需配置免费的 `S2_API_KEY`、`OPENALEX_API_KEY` 与 `CROSSREF_MAILTO`，脚本会自动静默读取。）*
@@ -126,6 +138,7 @@ uv run "$WF_CLI/compile_evidence_matrix.py" ./literature/extractions.json --out-
 ## 方法论致谢与开源协议
 
 本套件中的规则、工作流与代码均为 Clean-Room 原创工程实现，方法论体系致谢以下经典著作与开放学术基础设施：
+- **科学计算工程与 Python 编码规范**：Greg Wilson et al., *"Best Practices for Scientific Computing"* (*PLOS Biology*, 2014, `arXiv:1210.0530`, CC BY)；Greg Wilson et al., *"Good Enough Practices in Scientific Computing"* (*PLOS Computational Biology*, 2017, `arXiv:1609.00037`, CC BY)；Google, *[Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)* (CC BY 3.0)。
 - **学术叙事与句法结构**：Joshua Schimel, *Writing Science* (2012)；Margaret Cargill & Patrick O'Connor, *Writing Scientific Research Articles* (3rd ed., 2021)；Randy Olson, *Houston, We Have a Narrative: Why Science Needs Story* (2015)；George D. Gopen & Judith A. Swan, *"The Science of Scientific Writing"* (1990)。
 - **图表论证检视、可视化与制表规范**：Jean-luc Doumont, *Trees, Maps, and Theorems* (2009)；Michael Alley, *The Craft of Scientific Writing* / *Presentations* (Assertion-Evidence)；Felice C. Frankel & Angela H. DePace, *Visual Strategies* (2012)；Claus O. Wilke, *Fundamentals of Data Visualization* (2019)；Nicolas P. Rougier et al., *"Ten Simple Rules for Better Figures"* (*PLOS Computational Biology*, 2014, CC BY 4.0)；Okabe & Ito 色觉安全调色板。
 - **开放学术数据源**：Semantic Scholar (AI2 / SPECTER2)、OpenAlex、Crossref (Retraction Watch) 与 arXiv（请遵守各平台 API 服务条款及所检索论文自身的版权许可）。

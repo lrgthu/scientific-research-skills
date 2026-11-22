@@ -5,8 +5,8 @@
     "url": "https://github.com/lrgthu"
   },
   "metadata": {
-    "description": "End-to-end open-stack scientific research skills: citation graph lineage, stance/retraction auditing, LaTeX/full-text evidence matrices, anti-patchwork scholarly writing, cross-table/protocol numeric consistency auditing, and 5-gate assertion-evidence figure/table engineering.",
-    "version": "1.4.0"
+    "description": "End-to-end open-stack scientific research skills: citation graph lineage, stance/retraction auditing, LaTeX/full-text evidence matrices, reproducible scientific Python & Google Style engineering, anti-patchwork scholarly writing, cross-table/protocol numeric consistency auditing, and 5-gate assertion-evidence figure/table engineering.",
+    "version": "1.8.0"
   },
   "plugins": [
     {
@@ -14,6 +14,13 @@
       "source": "./plugins/research-literature",
       "description": "Open-stack scholarly literature intelligence: seed-to-lineage mapping (ResearchRabbit/Litmaps), interactive HTML citation maps, verbatim citation context & retraction auditing (Scite + Crossref Retraction Watch + arXiv LaTeX \\cite{} parser), iterative deep recall & parallel evidence matrices (Undermind + Elicit), and zero-hallucination .bib & OpenReview verification.",
       "version": "1.1.0",
+      "license": "MIT"
+    },
+    {
+      "name": "scientific-computing",
+      "source": "./plugins/scientific-computing",
+      "description": "Reproducible scientific computing and Google-style Python engineering suite synthesizing Wilson et al.'s Best Practices (2014) and Good Enough Practices in Scientific Computing (2017) with the Google Python Style Guide, including research repository scaffolding and an AST-based scientific Python static auditor.",
+      "version": "1.0.0",
       "license": "MIT"
     },
     {

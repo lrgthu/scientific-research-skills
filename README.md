@@ -9,12 +9,12 @@
 
 An end-to-end, **zero-subscription open-stack research skill suite** for coding and research agents (**Google Antigravity**, **Claude Code**, **OpenAI Codex CLI**, **Gemini CLI**, and **Cursor**).
 
-Most AI research workflows break in the middle: researchers juggle single-shot keyword search on one side, fragmented paid SaaS tabs (**Undermind**, **ResearchRabbit**, **Scite**, **Elicit**, **SciSpace**) in the middle, and patchwork LLM prose edits on the other. **`scientific-research-skills`** unifies the entire research lifecycle into **two decoupled, on-demand plugins** (`4` skills + `4` standalone `uv` Python CLIs + ironclad anti-hallucination & anti-patchwork rules):
+Most AI research workflows break in the middle: researchers juggle single-shot keyword search on one side, fragmented paid SaaS tabs (**Undermind**, **ResearchRabbit**, **Scite**, **Elicit**, **SciSpace**) in the middle, ad-hoc unseeded experiment scripts, and patchwork LLM prose edits on the other. **`scientific-research-skills`** unifies the entire research lifecycle into **three decoupled, on-demand plugins** (`5` skills + `7` standalone `uv` Python CLIs + ironclad anti-hallucination, reproducibility, & anti-patchwork rules):
 
 ```text
 Seed Papers / Fine-Grained Research Question
  │
- ├──► [1. research-literature]  (100% Open Scholarly Stack — $0 SaaS Subscriptions)
+ ├──► [1. research-literature]   (100% Open Scholarly Stack — $0 SaaS Subscriptions)
  │     ├── scholarly-graph-audit:
  │     │    • Seed-to-Lineage Graph (Co-Cited Roots + Coupling Frontier + SPECTER2 Siblings)
  │     │    • Interactive HTML Citation Map (Timeline X=Year & Force Network, Offline-Ready)
@@ -24,7 +24,14 @@ Seed Papers / Fine-Grained Research Question
  │          • Iterative Multi-Hop Deep Recall with Positive/Negative Seeds (Undermind Pattern)
  │          • Local arXiv .tar.gz LaTeX / OA PDF Unpacker + Parallel Subagent Evidence Matrix (Elicit++)
  │
- └──► [2. scientific-writing]   (Manuscript Architecture & Publication Visuals — Bidirectional ⇄ Bridge)
+ ├──► [2. scientific-computing]  (Reproducible Research Engineering & Google-Style Scientific Python)
+ │     └── scientific-computing:
+ │          • Canonical Layout (`data/raw/` Read-Only -> `src/` Guts -> `scripts/` Drivers -> `results/`)
+ │          • Tidy Data, Semantic Artifact Naming, & Provenance JSON Sidecars (`scaffold_research_project.py`)
+ │          • Google Python Style Adapted for NumPy/SciPy/PyTorch/JAX (`NaN`-Safe Guards, `.size` Truthiness, §3.16.5 Math)
+ │          • Analytical/Conservation Oracles, Isolated `default_rng`, & AST Static Auditor (`audit_scientific_python.py`)
+ │
+ └──► [3. scientific-writing]    (Manuscript Architecture & Publication Visuals — Bidirectional ⇄ Bridge)
        ├── scientific-writing:
        │    • Conditional Literature Bridge (Calls back to [1] for Intro/Related Work, H1->H2 Pivots & .bib Verify)
        │    • Anti-Patchwork Holistic Reconstruction Protocol (Zero Factual/LaTeX Regression)
@@ -70,7 +77,15 @@ scientific-research-skills/
     │           ├── SKILL.md
     │           ├── references/{ml_extraction_schemas.md, evidence_matrix_workflow_template.py}
     │           └── scripts/{unpack_paper_corpus.py, compile_evidence_matrix.py}
-    └── scientific-writing/              # Plugin 2: Scholarly Writing & Publication Figures
+    ├── scientific-computing/            # Plugin 2: Reproducible Scientific Python & Google Style
+    │   ├── plugin.json
+    │   ├── rules/AGENTS.md              # Read-only raw data, NaN-safe guards, RNG & Google Style rules
+    │   └── skills/
+    │       └── scientific-computing/
+    │           ├── SKILL.md
+    │           ├── references/{project-data-and-reproducibility.md, google-python-scientific-style.md, testing-profiling-and-numerical-rigor.md}
+    │           └── scripts/{scaffold_research_project.py, audit_scientific_python.py}
+    └── scientific-writing/              # Plugin 3: Scholarly Writing & Publication Figures
         ├── plugin.json
         ├── rules/AGENTS.md              # Scope gates + Anti-Patchwork & Proportional-Ink rules
         └── skills/
@@ -180,13 +195,29 @@ uv run "$WF_CLI/compile_evidence_matrix.py" \
   --out-dir ./literature/matrix
 ```
 
-*(Optional Rate-Limit Keys)*: For heavy batch workloads, scripts automatically pick up `S2_API_KEY`, `OPENALEX_API_KEY`, and `CROSSREF_MAILTO` from `~/.env` if defined.
+### 5. Scaffold a Reproducible Scientific Python Repo & Run Static Scientific/Google-Style Audits
+```bash
+SCICOMP_CLI="plugins/scientific-computing/skills/scientific-computing/scripts"
+
+# Scaffold src/ + read-only data/raw/ + Google-docstring Ruff + pytest + provenance sidecar runner
+uv run "$SCICOMP_CLI/scaffold_research_project.py" ./my-experiment --author "Your Lab"
+
+# Audit any research codebase for NaN range traps, global RNGs, mutable defaults, array truthiness, & Google Style
+uv run "$SCICOMP_CLI/audit_scientific_python.py" --strict ./my-experiment
+```
+
+*(Optional Rate-Limit Keys)*: For heavy batch workloads, literature scripts automatically pick up `S2_API_KEY`, `OPENALEX_API_KEY`, and `CROSSREF_MAILTO` from `~/.env` if defined.
 
 ---
 
 ## Methodological Foundations & Credits
 
-The rules, workflows, and presets in this repository are clean-room operationalizations inspired by foundational works in scientific communication, data visualization, and open bibliometrics:
+The rules, workflows, and presets in this repository are clean-room operationalizations inspired by foundational works in scientific computing, scientific communication, data visualization, and open bibliometrics:
+
+- **Scientific Computing, Reproducibility & Python Engineering**:
+  - Greg Wilson, D. A. Aruliah, C. Titus Brown, Neil P. Chue Hong, Matt Davis, Richard T. Guy, Steven H. D. Haddock, Kathryn D. Huff, Ian M. Mitchell, Mark D. Plumbley, Ben Waugh, Ethan P. White & Paul Wilson, *"Best Practices for Scientific Computing,"* *PLOS Biology* 12(1): e1001745 (2014, `arXiv:1210.0530`, CC BY).
+  - Greg Wilson, Jennifer Bryan, Karen Cranston, Justin Kitzes, Lex Nederbragt & Tracy K. Teal, *"Good Enough Practices in Scientific Computing,"* *PLOS Computational Biology* 13(6): e1005510 (2017, `arXiv:1609.00037`, CC BY).
+  - Google, *[Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)* (CC BY 3.0).
 
 - **Scientific Storytelling & Prose Architecture**:
   - Joshua Schimel, *Writing Science: How to Write Papers That Get Cited and Proposals That Get Funded* (Oxford University Press, 2012).

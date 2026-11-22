@@ -1,0 +1,14 @@
+{
+  "name": "scientific-computing",
+  "displayName": "Scientific Computing & Python Engineering",
+  "version": "1.0.0",
+  "author": "lrgthu",
+  "repository": "https://github.com/lrgthu/scientific-research-skills",
+  "description": "Reproducible scientific computing and Google-style Python engineering suite synthesizing Wilson et al.'s Best Practices (2014) and Good Enough Practices in Scientific Computing (2017) with the Google Python Style Guide, including project scaffolding and an AST-based scientific Python linter.",
+  "logo": "assets/logo.svg",
+  "suggestedPrompts": [
+    "Scaffold a reproducible scientific Python project with read-only raw data, tidy pipelines, provenance logging, and Google-style Ruff/pytest configs",
+    "Audit and refactor our research codebase for numerical safety, RNG reproducibility, modular chunking, and Google Python Style compliance",
+    "Design analytical, invariance, and smoke tests for this numerical solver or ML training pipeline before profiling bottlenecks"
+  ]
+}

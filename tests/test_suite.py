@@ -31,12 +31,15 @@ GRAPH_SCRIPT = REPO_ROOT / "plugins/research-literature/skills/scholarly-graph-a
 MAP_SCRIPT = REPO_ROOT / "plugins/research-literature/skills/scholarly-graph-audit/scripts/render_citation_map.py"
 MATRIX_SCRIPT = REPO_ROOT / "plugins/research-literature/skills/literature-evidence-workflow/scripts/compile_evidence_matrix.py"
 VISUAL_LINT_SCRIPT = REPO_ROOT / "plugins/scientific-writing/skills/scientific-writing/scripts/lint_manuscript_visuals.py"
+SCAFFOLD_SCRIPT = REPO_ROOT / "plugins/scientific-computing/skills/scientific-computing/scripts/scaffold_research_project.py"
+PY_AUDIT_SCRIPT = REPO_ROOT / "plugins/scientific-computing/skills/scientific-computing/scripts/audit_scientific_python.py"
 
 
 def load_module(name: str, path: Path):
     spec = importlib.util.spec_from_file_location(name, path)
     assert spec and spec.loader
     mod = importlib.util.module_from_spec(spec)
+    sys.modules[name] = mod
     spec.loader.exec_module(mod)
     return mod
 
@@ -45,6 +48,8 @@ sg = load_module("scholarly_graph", GRAPH_SCRIPT)
 rcm = load_module("render_citation_map", MAP_SCRIPT)
 cem = load_module("compile_evidence_matrix", MATRIX_SCRIPT)
 lmv = load_module("lint_manuscript_visuals", VISUAL_LINT_SCRIPT)
+srp = load_module("scaffold_research_project", SCAFFOLD_SCRIPT)
+asp = load_module("audit_scientific_python", PY_AUDIT_SCRIPT)
 
 
 class TestPluginAndSkillManifests(unittest.TestCase):
@@ -61,7 +66,11 @@ class TestPluginAndSkillManifests(unittest.TestCase):
             "repository",
             "disabled",
         }
-        for pdir in (REPO_ROOT / "plugins/research-literature", REPO_ROOT / "plugins/scientific-writing"):
+        for pdir in (
+            REPO_ROOT / "plugins/research-literature",
+            REPO_ROOT / "plugins/scientific-computing",
+            REPO_ROOT / "plugins/scientific-writing",
+        ):
             manifest = json.loads((pdir / "plugin.json").read_text(encoding="utf-8"))
             self.assertTrue(set(manifest.keys()).issubset(allowed_plugin_keys))
             self.assertLessEqual(len(manifest.get("suggestedPrompts", [])), 3)
@@ -454,6 +463,111 @@ class TestProseVisualSymbiosisLinter(unittest.TestCase):
         self.assertFalse(rep["clean"])
         # 91.5 matches directly, 3.2 matches 91.5 - 88.3, while stale 0.2189 is flagged!
         self.assertEqual([u["number"] for u in rep["abstract_unmatched_numbers"]], ["0.2189"])
+
+
+class TestScientificComputingTools(unittest.TestCase):
+    def test_scaffold_project_passes_strict_audit_and_rejects_bad_names(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            proj_dir = Path(tmp) / "2026-spectral-solver"
+            pkg_name = srp.derive_package_name(proj_dir.name)
+            self.assertEqual(pkg_name, "proj_2026_spectral_solver")
+            spec = srp.ScaffoldSpec(
+                project_dir=proj_dir,
+                dist_name="spectral-solver",
+                pkg_name=pkg_name,
+                author="Unit Test Lab",
+                license_id="MIT",
+                python_req=">=3.11",
+            )
+            written = srp.scaffold_project(spec)
+            self.assertEqual(len(written), 18)
+            self.assertTrue((proj_dir / "CITATION.cff").is_file())
+            self.assertTrue((proj_dir / "data/raw/README.md").is_file())
+
+            report = asp.audit_target(proj_dir)
+            self.assertTrue(report["clean"], msg=json.dumps(report, indent=2))
+
+            # Provenance writer must reject manuscript-numbered placeholder filenames
+            prov_mod = load_module(
+                "scaffolded_prov",
+                proj_dir / "src" / pkg_name / "provenance.py",
+            )
+            with self.assertRaises(ValueError):
+                prov_mod.write_provenance_json(
+                    proj_dir / "results" / "fig_3a.json",
+                    {"seed": 1},
+                )
+
+    def test_python_auditor_catches_google_style_and_numerical_hazards(self) -> None:
+        bad_code = """
+import os, sys
+from math import exp
+from .helpers import *
+
+np.random.seed(42)
+
+def run_sim(x: np.ndarray, p: float, a, b, c, d, e, f, cache=[]):
+    assert p > 0
+    if p < 0.0 or p > 1.0:
+        raise ValueError("bad p")
+    if not x:
+        return None
+    if p == 0.1:
+        logger.info(f"hit {p}")
+    fh = open("results/fig_2b.csv", "w")
+    plt.savefig("results/plot.jpg")
+    try:
+        fh.write("x")
+    except:
+        pass
+    try:
+        fh.close()
+    except Exception:
+        pass
+    return exp(p)
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            bad_py = Path(tmp) / "bad_sim.py"
+            bad_py.write_text(bad_code, encoding="utf-8")
+            rep = asp.audit_target(bad_py)
+            self.assertFalse(rep["clean"])
+            rules = set(rep["counts"]["by_rule"].keys())
+            expected_rules = {
+                "missing_docstring",
+                "multiple_imports_on_line",
+                "symbol_import_instead_of_module",
+                "relative_import",
+                "wildcard_import",
+                "unprotected_top_level_exec",
+                "legacy_global_rng",
+                "mutable_default_arg",
+                "too_many_arguments",
+                "assert_public_precondition",
+                "nan_unsafe_range_check",
+                "ambiguous_array_truthiness",
+                "exact_float_equality",
+                "fstring_in_logging",
+                "unclosed_resource",
+                "non_semantic_artifact_path",
+                "jpeg_scientific_figure",
+                "bare_except",
+                "swallowed_broad_except",
+            }
+            self.assertTrue(
+                expected_rules.issubset(rules),
+                msg=f"Missing rules: {expected_rules - rules}",
+            )
+
+            # Inline # noqa suppression silences targeted lines cleanly
+            suppressed_py = Path(tmp) / "suppressed.py"
+            suppressed_py.write_text(
+                '"""Clean module."""\n\nimport random\n\n\ndef sample() -> float:\n'
+                '    """Samples with explicit noqa."""\n'
+                "    return random.random()  # noqa: legacy_global_rng\n",
+                encoding="utf-8",
+            )
+            rep_sup = asp.audit_target(suppressed_py)
+            self.assertTrue(rep_sup["clean"], msg=json.dumps(rep_sup, indent=2))
 
 
 if __name__ == "__main__":
