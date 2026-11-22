@@ -1,0 +1,14 @@
+{
+  "name": "research-literature",
+  "displayName": "Research Literature Intelligence",
+  "version": "1.0.0",
+  "author": "lrgthu",
+  "repository": "https://github.com/lrgthu/scientific-research-skills",
+  "description": "Open-stack scholarly literature intelligence suite: seed-based citation lineage & interactive graph mapping (ResearchRabbit/Litmaps), in-text citation context/stance & retraction auditing (Scite + Crossref Retraction Watch), iterative deep recall & parallel arXiv LaTeX/full-text evidence matrices (Undermind + Elicit), and zero-hallucination canonical .bib verification.",
+  "logo": "assets/logo.svg",
+  "suggestedPrompts": [
+    "Map the citation lineage (co-cited roots, active frontier, and SPECTER2 siblings) from these seed papers and render an interactive citation graph",
+    "Audit how subsequent papers cite this baseline (supporting vs. contrasting/limitation contexts), check retraction status, and verify our references.bib",
+    "Run an iterative deep literature search and parallel arXiv LaTeX evidence matrix extraction for our research question before outlining Related Work"
+  ]
+}

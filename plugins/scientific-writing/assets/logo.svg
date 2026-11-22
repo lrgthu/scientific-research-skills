@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" fill="none">
+  <!-- 10%+ outer margin kept clear (bounds within 28..228) -->
+  <!-- Subtle badge ring for high contrast on both dark and light themes -->
+  <rect x="28" y="28" width="200" height="200" rx="44" fill="#0F172A" stroke="#38BDF8" stroke-width="6"/>
+  <!-- Schimel Hourglass (Opening -> Challenge/Action -> Resolution) -->
+  <path d="M76 68 H180 L142 118 V138 L180 188 H76 L114 138 V118 Z"
+        fill="#1E293B" stroke="#38BDF8" stroke-width="6" stroke-linejoin="round"/>
+  <!-- Spiral / Story Arc Accent (O -> C -> A -> R) -->
+  <path d="M68 150 C92 92, 164 92, 188 150"
+        stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="1 0"/>
+  <polygon points="193,155 178,149 189,138" fill="#FBBF24"/>
+  <!-- Nib / Precision Center Point at the Challenge Neck -->
+  <circle cx="128" cy="128" r="9" fill="#FBBF24"/>
+  <!-- Top & Bottom Power Position Bars (Equal Hourglass Width) -->
+  <line x1="72" y1="68" x2="184" y2="68" stroke="#F8FAFC" stroke-width="7" stroke-linecap="round"/>
+  <line x1="72" y1="188" x2="184" y2="188" stroke="#F8FAFC" stroke-width="7" stroke-linecap="round"/>
+</svg>

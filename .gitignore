@@ -1,0 +1,19 @@
+# OS & Editor
+.DS_Store
+*.swp
+*~
+
+# Python / uv
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Secrets & Local Caches (NEVER commit!)
+.env
+.env.*
+*.sqlite3
+literature/
+scratch/
+output/
