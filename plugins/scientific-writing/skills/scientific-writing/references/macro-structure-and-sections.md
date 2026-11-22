@@ -191,3 +191,22 @@ Use the **Message Box** to crystallize any proposal, paper abstract, executive s
 
 - **Writing for the Public**: Assume readers are **intelligent but lack specialist schemas** (never "dumb down"—use *more* story and `SUCCES`, *less* complexity and jargon). Use **`LDR`**, highlight either `"Huh, who knew?"` curiosity or `Application` (`"How does this affect me?"`), include human actors where natural, and **never** place a technical term in the Topic position of a sentence.
 - **Writing for Policy / Decision Makers**: Time budget is ~5 minutes; culture is action/decision-driven. Use ultra-tight **`LD`/`LDR`**, strip technical filler (`"blah, blah, carbon"`), and make your final stress words the concrete actionable implication.
+
+---
+
+## 7. Peer Review & Author Rebuttal Architecture (Conferences & Journals)
+
+In ML/AI conferences (NeurIPS, ICML, ICLR, CVPR, ACL — strict character caps and hurried Area Chairs) and journal revisions, your primary reader is the **Area Chair / Action Editor** deciding whether concerns are resolved without re-reading 30 pages from scratch:
+
+1. **Top-Level AC / Editor Executive Summary (`LD` Structure First)**:
+   - Open with a 1-paragraph synthesis: **(a) Shared Strengths** recognized across reviewers, **(b) Cross-Cutting Concerns Resolved** (grouped into 2–3 themes with headline new numbers/tables up front!), and **(c) Summary of Manuscript Revisions**.
+2. **Point-by-Point Response Formula (`LD` per Reviewer Concern)**:
+   - Never bury the answer after 10 lines of defensive throat-clearing. Structure every reply `W1 / Q1` as:
+     1. **Direct Point-First Answer (`Sentence 1`)**: State the concrete resolution immediately (*"Yes—evaluating on Dataset D at 70B scale confirms..."* or *"Clarified in Sec. 3.2: Assumption A holds whenever..."*).
+     2. **Concrete Evidence / Effect Size**: Compact Booktabs markdown table or exact $\Delta$ metric (never vague `"we observed similar trends"`).
+     3. **Exact Manuscript Diff Pointer**: Quote or point to the revised section/equation/appendix (`"Updated Sec. 4.3 & Appendix C, Table 6"`—and ensure any manuscript update obeys the **Anti-Patchwork Triage Rule** rather than gluing `"Moreover..."` addenda onto the main text!).
+3. **Handling Reviewer-Suggested "Missing Citations" (`research-literature` Bridge)**:
+   - Never blindly paste a reviewer's suggested paper with a generic `"Concurrent work X also studied Y"` sentence, nor dismiss it from memory.
+   - Run `scholarly-graph-audit` (`resolve` + `citation-audit` / `tex-context`) on every reviewer-suggested reference first: verify its exact problem setting, assumptions, and publication status, then integrate it cleanly into the appropriate **mechanistic camp** in `Related Work` (using `"But, yes"` framing when contrasting scope boundaries).
+4. **Calibrated Tone & `"But, Yes"` Concessions**:
+   - Zero combative language (*"Reviewer 2 failed to read Sec. 3"* → *"We apologize that the notation in Sec. 3 obscured..."*). When a reviewer exposes a genuine boundary condition, concede the boundary upfront (`"But"`), bound its impact quantitatively, and reaffirm the core validated contribution (`"Yes"`).

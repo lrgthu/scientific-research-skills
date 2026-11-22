@@ -194,22 +194,25 @@ def resolve_lightweight_item(client: httpx.Client, spec: str | dict[str, Any]) -
         return {"title": local_p.stem, "local_pdf": str(local_p.resolve()), "canonical_id": f"local:{local_p.stem}"}
 
     m_ax = ARXIV_RE.match(s)
-    if m_ax or "arxiv.org/" in s:
-        ax_id = m_ax.group(1) if m_ax else s.split("/abs/")[-1].split("/pdf/")[-1].replace(".pdf", "").split("v")[0]
-        return {
-            "title": f"arXiv:{ax_id}",
-            "arxiv_id": ax_id,
-            "oa_pdf_url": f"https://arxiv.org/pdf/{ax_id}.pdf",
-            "canonical_id": f"arxiv:{ax_id}",
-        }
-
-    # Query OpenAlex for DOI / title
-    doi_clean = re.sub(r"^(?:https?://(?:dx\.)?doi\.org/|doi:)", "", s, flags=re.IGNORECASE)
-    url = (
-        f"https://api.openalex.org/works/https://doi.org/{urllib.parse.quote(doi_clean, safe='/')}"
-        if doi_clean.startswith("10.")
-        else f"https://api.openalex.org/works?search={urllib.parse.quote(s)}&per-page=1"
+    extracted_ax = (
+        m_ax.group(1)
+        if m_ax
+        else (
+            s.split("/abs/")[-1].split("/pdf/")[-1].replace(".pdf", "").split("v")[0].strip("/")
+            if "arxiv.org/" in s
+            else None
+        )
     )
+
+    # Query OpenAlex for DOI / arXiv DataCite DOI / title so full metadata is populated
+    doi_clean = re.sub(r"^(?:https?://(?:dx\.)?doi\.org/|doi:)", "", s, flags=re.IGNORECASE)
+    if extracted_ax:
+        url = f"https://api.openalex.org/works/https://doi.org/10.48550/arXiv.{extracted_ax}"
+    elif doi_clean.startswith("10."):
+        url = f"https://api.openalex.org/works/https://doi.org/{urllib.parse.quote(doi_clean, safe='/')}"
+    else:
+        url = f"https://api.openalex.org/works?search={urllib.parse.quote(s)}&per-page=1"
+
     try:
         r = client.get(url)
         if r.status_code == 200:
@@ -218,26 +221,49 @@ def resolve_lightweight_item(client: httpx.Client, spec: str | dict[str, Any]) -
             if w:
                 oa_url = (w.get("open_access") or {}).get("oa_url")
                 raw_doi = (w.get("doi") or "").replace("https://doi.org/", "")
-                arxiv_id = None
+                arxiv_id = extracted_ax
+                if raw_doi.lower().startswith("10.48550/arxiv."):
+                    arxiv_id = arxiv_id or re.sub(r"^10\.48550/arxiv\.", "", raw_doi, flags=re.IGNORECASE)
+                    raw_doi = ""
+                venue = ""
                 for loc in [w.get("primary_location")] + (w.get("locations") or []):
-                    lp = (loc or {}).get("landing_page_url") or ""
-                    if "arxiv.org/abs/" in lp:
+                    if not loc:
+                        continue
+                    lp = loc.get("landing_page_url") or ""
+                    if "arxiv.org/abs/" in lp and not arxiv_id:
                         arxiv_id = lp.split("arxiv.org/abs/")[-1].split("v")[0].strip("/")
-                        break
+                    disp = ((loc.get("source") or {}).get("display_name") or "").strip()
+                    if disp and "arxiv" not in disp.lower() and not venue:
+                        venue = disp
+                authors = [
+                    ((a.get("author") or {}).get("display_name") or "").strip()
+                    for a in (w.get("authorships") or [])
+                    if (a.get("author") or {}).get("display_name")
+                ]
                 inv = w.get("abstract_inverted_index") or {}
                 pos = {p: word for word, plist in inv.items() for p in plist}
                 abstract = " ".join(pos[i] for i in sorted(pos)) if pos else None
                 return {
-                    "title": w.get("title") or s,
+                    "title": w.get("title") or (f"arXiv:{arxiv_id}" if arxiv_id else s),
+                    "authors": authors,
                     "year": w.get("publication_year"),
+                    "venue": venue or ("arXiv" if arxiv_id else None),
                     "doi": raw_doi or None,
                     "arxiv_id": arxiv_id,
-                    "oa_pdf_url": oa_url,
+                    "oa_pdf_url": oa_url or (f"https://arxiv.org/pdf/{arxiv_id}.pdf" if arxiv_id else None),
                     "abstract": abstract,
-                    "canonical_id": f"doi:{raw_doi}" if raw_doi else f"oa:{w['id'].split('/')[-1]}",
+                    "canonical_id": f"doi:{raw_doi}" if raw_doi else (f"arxiv:{arxiv_id}" if arxiv_id else f"oa:{w['id'].split('/')[-1]}"),
                 }
     except httpx.HTTPError:
         pass
+
+    if extracted_ax:
+        return {
+            "title": f"arXiv:{extracted_ax}",
+            "arxiv_id": extracted_ax,
+            "oa_pdf_url": f"https://arxiv.org/pdf/{extracted_ax}.pdf",
+            "canonical_id": f"arxiv:{extracted_ax}",
+        }
     return {"title": s, "canonical_id": slugify(s)}
 
 

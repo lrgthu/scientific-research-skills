@@ -2,6 +2,7 @@
 
 **English** | [中文文档 (README_zh.md)](./README_zh.md)
 
+[![CI](https://github.com/lrgthu/scientific-research-skills/actions/workflows/ci.yml/badge.svg)](https://github.com/lrgthu/scientific-research-skills/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B%20(uv)-3776AB.svg)](https://docs.astral.sh/uv/)
 [![Agent Skills](https://img.shields.io/badge/Standard-SKILL.md%20%2B%20AGENTS.md-10B981.svg)](#installation)
@@ -148,16 +149,18 @@ uv run "$GRAPH_CLI/scholarly_graph.py" tex-context \
   --output /tmp/dpo_tex_cites.json
 ```
 
-### 3. Verify `.bib` Files, Catch Hallucinations & Upgrade Stale Preprints
+### 3. Verify `.bib` Files, Lint `.tex` Citations, Catch Hallucinations & Upgrade Stale Preprints
 ```bash
 uv run "$GRAPH_CLI/scholarly_graph.py" bib-verify \
   --bib references.bib \
+  --tex-dir ./manuscript \
   --output-bib references_verified.bib \
   --report /tmp/bib_audit_report.json
 ```
-- Flags fabricated/unresolvable entries as `UNVERIFIED_HALLUCINATION_RISK`.
-- Flags retracted works via OpenAlex `is_retracted` + Crossref Retraction Watch (`RETRACTED_OR_WITHDRAWN`).
-- Upgrades stale `arXiv` `@misc` entries to peer-reviewed venue records (`UPGRADE_AVAILABLE_TO_PUBLISHED`, e.g., NeurIPS/ICLR/ICML) while preserving your existing BibTeX citation keys.
+- Flags fabricated/unresolvable entries as `UNVERIFIED_HALLUCINATION_RISK` and author collisions as `METADATA_AUTHOR_MISMATCH`.
+- Flags retracted/withdrawn works via OpenAlex `is_retracted`, Crossref Retraction Watch, and OpenReview (`RETRACTED_OR_WITHDRAWN`).
+- Upgrades stale `arXiv` `@misc` entries to peer-reviewed venue records across Crossref, OpenAlex, and **OpenReview** (`UPGRADE_AVAILABLE_TO_PUBLISHED`, e.g., NeurIPS/ICLR/ICML/TMLR) while preserving your existing BibTeX citation keys.
+- Audits `.tex` manuscripts for undefined `[?]` citations (`undefined_cite_keys_in_tex`), duplicate papers under multiple keys (`duplicate_work_keys`), and unused `.bib` entries.
 
 ### 4. Unpack arXiv LaTeX Corpus & Compile Booktabs Evidence Matrices (Elicit++)
 ```bash

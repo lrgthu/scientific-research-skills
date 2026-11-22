@@ -2,6 +2,7 @@
 
 [English Documentation (README.md)](./README.md) | **中文文档**
 
+[![CI](https://github.com/lrgthu/scientific-research-skills/actions/workflows/ci.yml/badge.svg)](https://github.com/lrgthu/scientific-research-skills/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B%20(uv)-3776AB.svg)](https://docs.astral.sh/uv/)
 [![Agent Skills](https://img.shields.io/badge/Standard-SKILL.md%20%2B%20AGENTS.md-10B981.svg)](#安装方式)
@@ -103,9 +104,10 @@ uv run "$GRAPH_CLI/render_citation_map.py" /tmp/dpo_lineage.json \
 uv run "$GRAPH_CLI/scholarly_graph.py" citation-audit "arXiv:2305.18290" \
   --output /tmp/dpo_audit.json
 
-# 3. 核验 references.bib：拦截幻觉引用、检查撤稿、将过时 arXiv 预印本升级为顶会/期刊正式版
+# 3. 核验 references.bib 与 LaTeX 稿件：拦截幻觉/错配、检查撤稿、扫除 [?] 漏引、升级 arXiv/OpenReview 正式版
 uv run "$GRAPH_CLI/scholarly_graph.py" bib-verify \
   --bib references.bib \
+  --tex-dir ./manuscript \
   --output-bib references_verified.bib \
   --report /tmp/bib_report.json
 

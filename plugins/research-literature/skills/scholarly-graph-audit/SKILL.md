@@ -102,27 +102,29 @@ uv run "$SCRIPT_DIR/scholarly_graph.py" tex-context \
 
 ---
 
-### 4. Zero-Hallucination `.bib` Verifier & Preprint Upgrader (`bib-verify`)
+### 4. Zero-Hallucination `.bib` Verifier, Manuscript Linter & Preprint Upgrader (`bib-verify`)
 
-Whenever auditing an existing `.bib` file or generating verified BibTeX entries for a manuscript:
+Whenever auditing an existing `.bib` file, checking a LaTeX manuscript before submission, or generating verified BibTeX entries:
 
 ```bash
-# Audit an existing .bib file and emit an upgraded canonical .bib
+# Audit an existing .bib + cross-check a LaTeX manuscript directory for undefined [?], unused, or duplicate keys
 uv run "$SCRIPT_DIR/scholarly_graph.py" bib-verify \
   --bib path/to/references.bib \
+  --tex-dir path/to/manuscript_tex_dir \
   --output-bib path/to/references_verified.bib \
   --report /tmp/bib_audit_report.json
 
-# Or resolve & generate verified BibTeX from a list of IDs / titles
+# Or resolve & generate verified BibTeX from DOIs / arXiv IDs / OpenReview URLs / titles
 uv run "$SCRIPT_DIR/scholarly_graph.py" bib-verify \
-  --ids "arXiv:2305.18290" "10.1038/s41586-021-03819-2" \
+  --ids "arXiv:2305.18290" "https://openreview.net/forum?id=ljNZyrAlaa" "10.1038/s41586-021-03819-2" \
   --output-bib /tmp/new_refs.bib \
   --report /tmp/new_refs_report.json
 ```
 
-**Status Codes & Required Actions:**
+**Status Codes & Pre-Submission Checks:**
 - `VERIFIED_PUBLISHED` / `VERIFIED_PREPRINT`: Safe to cite; list canonical URLs/DOIs.
-- `UPGRADE_AVAILABLE_TO_PUBLISHED`: The `.bib` cited an `arXiv`/`bioRxiv` preprint that now has a peer-reviewed conference/journal publication (e.g., ICLR/NeurIPS/ICML)—adopt the upgraded `@inproceedings`/`@article` entry while preserving the user's original BibTeX key.
-- `METADATA_YEAR_MISMATCH`: Fix year/venue/author drift after confirming title match.
-- `RETRACTED_OR_WITHDRAWN`: **Block silent citation**—surface the Crossref/OpenAlex retraction notice immediately.
-- `UNVERIFIED_HALLUCINATION_RISK`: Could not be verified in Crossref, OpenAlex, Semantic Scholar, or arXiv—flag explicitly to the user and **never** include unverified entries in a final `.bib`.
+- `UPGRADE_AVAILABLE_TO_PUBLISHED`: The `.bib` cited an `arXiv`/`bioRxiv` preprint that now has a peer-reviewed conference/journal publication (checked across OpenAlex, Semantic Scholar, Crossref, and **OpenReview** for recent ICLR/ICML/NeurIPS/TMLR acceptances)—adopt the upgraded `@inproceedings`/`@article` entry while preserving the user's original BibTeX key.
+- `METADATA_YEAR_MISMATCH` / `METADATA_AUTHOR_MISMATCH`: Flags year drift or author-list mismatch (preventing generic-title false collisions!).
+- `RETRACTED_OR_WITHDRAWN`: **Block silent citation**—surfaces Crossref/OpenAlex retractions and OpenReview `Withdrawn` notices immediately.
+- `UNVERIFIED_HALLUCINATION_RISK`: Could not be verified across any scholarly index—flag explicitly to the user and **never** include in a final `.bib`.
+- `manuscript_cross_check` (when `--tex-dir` is passed): Reports `undefined_cite_keys_in_tex` (preventing `[?]` in compiled PDFs), `duplicate_work_keys` (same paper cited under two different `.bib` keys), and `unused_bib_keys`.

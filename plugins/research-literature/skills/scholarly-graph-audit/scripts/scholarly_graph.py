@@ -283,10 +283,16 @@ class CachedHttpClient:
 ARXIV_RE = re.compile(r"^(?:arxiv:)?(\d{4}\.\d{4,5}|[a-z\-]+/\d{7})(?:v\d+)?$", re.IGNORECASE)
 DOI_RE = re.compile(r"^(?:https?://(?:dx\.)?doi\.org/|doi:)?(10\.\d{4,9}/[-._;()/:A-Z0-9]+)$", re.IGNORECASE)
 OPENALEX_RE = re.compile(r"^(?:https?://openalex\.org/)?(W\d+)$", re.IGNORECASE)
+OPENREVIEW_RE = re.compile(r"openreview\.net/(?:forum|pdf)\?id=([A-Za-z0-9_\-]+)", re.IGNORECASE)
 
 
 def classify_identifier(raw: str) -> tuple[str, str]:
     s = raw.strip()
+    m_or = OPENREVIEW_RE.search(s)
+    if m_or:
+        return ("openreview", m_or.group(1))
+    if s.lower().startswith("openreview:"):
+        return ("openreview", s.split(":", 1)[1].strip())
     m_arxiv = ARXIV_RE.match(s)
     if m_arxiv:
         return ("arxiv", m_arxiv.group(1))
@@ -317,11 +323,56 @@ def is_preprint_venue(venue: str | None) -> bool:
     v = venue.strip().lower()
     if not v:
         return True
+    if any(k in v for k in ("submitted to", "withdrawn", "rejected", "under review", "desk reject")):
+        return True
     return any(p in v for p in PREPRINT_VENUES)
 
 
+def clean_latex_text(text: str) -> str:
+    """Strips BibTeX/LaTeX formatting macros, diacritics, and braces for accurate matching."""
+    s = text or ""
+    # 1. Convert Greek LaTeX macros first ($\beta$ -> beta) before stripping accents
+    s = re.sub(
+        r"\$?\\(alpha|beta|gamma|delta|epsilon|zeta|eta|theta|kappa|lambda|mu|nu|xi|pi|rho|sigma|tau|phi|chi|psi|omega)\b\$?",
+        r"\1",
+        s,
+        flags=re.IGNORECASE,
+    )
+    # 2. Symbol accents (\"o, \'e, \`a, \^o, \~n, \=a, \.z)
+    s = re.sub(r"\\[\"'`^~=.]\{?([a-zA-Z])\}?", r"\1", s)
+    # 3. Letter accents requiring braces (\v{s}, \c{c}, \u{g}, \H{o}, \k{a}, \b{o}, \d{a})
+    s = re.sub(r"\\[uvHckbd]\{([a-zA-Z])\}", r"\1", s)
+    # 4. Styling macros (\textbf{...}, \emph{...}) keeping inner text
+    s = re.sub(r"\\(?:textbf|textit|emph|textrm|textsc|mathbf|mathrm|mathcal)\{([^{}]*)\}", r"\1", s)
+    s = s.replace("{", "").replace("}", "").replace("$", "")
+    return re.sub(r"\s+", " ", s).strip()
+
+
 def normalize_title(title: str) -> str:
-    return re.sub(r"[^a-z0-9]+", " ", (title or "").lower()).strip()
+    cleaned = clean_latex_text(title)
+    # Map common Greek Unicode letters to ASCII names so β-DPO == \beta-DPO
+    greek_map = {"α": "alpha", "β": "beta", "γ": "gamma", "δ": "delta", "λ": "lambda", "μ": "mu", "σ": "sigma"}
+    for uni, name in greek_map.items():
+        cleaned = cleaned.replace(uni, name)
+    return re.sub(r"[^a-z0-9]+", " ", cleaned.lower()).strip()
+
+
+def extract_author_surnames(authors_raw: str | list[str]) -> set[str]:
+    if isinstance(authors_raw, str):
+        parts = [p.strip() for p in re.split(r"\band\b", clean_latex_text(authors_raw)) if p.strip()]
+    else:
+        parts = [clean_latex_text(p) for p in authors_raw if p]
+    surnames: set[str] = set()
+    for p in parts:
+        if "," in p:
+            sur = p.split(",", 1)[0].strip()
+        else:
+            toks = p.split()
+            sur = toks[-1] if toks else ""
+        norm = re.sub(r"[^a-z]", "", sur.lower())
+        if len(norm) >= 2:
+            surnames.add(norm)
+    return surnames
 
 
 def title_similarity(t1: str, t2: str) -> float:
@@ -596,6 +647,8 @@ def resolve_paper(http: CachedHttpClient, raw_input: str) -> dict[str, Any] | No
         s2_lookup_id = val
     elif kind == "pmid":
         s2_lookup_id = f"PMID:{val}"
+    elif kind == "openreview":
+        s2_lookup_id = f"URL:https://openreview.net/forum?id={val}"
 
     if s2_lookup_id:
         s2_data = http.request_json(
@@ -690,6 +743,53 @@ def resolve_paper(http: CachedHttpClient, raw_input: str) -> dict[str, Any] | No
     # 3. Fallback to arXiv API if needed
     if kind == "arxiv" and record is None:
         record = fetch_arxiv_metadata(http, val)
+
+    # 3b. OpenReview public search resolution & ML conference acceptance upgrade (ICLR/NeurIPS/ICML/TMLR/COLM)
+    if kind == "openreview" or (record and not record.get("is_published_venue") and record.get("title")):
+        or_term = val if kind == "openreview" else (record["title"] if record else val)
+        or_res = http.request_json(
+            "GET",
+            "https://api2.openreview.net/notes/search",
+            params={"term": or_term, "limit": 5},
+            min_interval=0.35,
+            max_retries=1,
+        )
+        if isinstance(or_res, dict) and or_res.get("notes"):
+            for note in or_res["notes"]:
+                if kind == "openreview" and note.get("forum") != val and note.get("id") != val:
+                    continue
+                cnt = note.get("content") or {}
+                ntitle = ((cnt.get("title") or {}).get("value") if isinstance(cnt.get("title"), dict) else cnt.get("title")) or ""
+                if kind != "openreview" and record and title_similarity(record["title"], str(ntitle)) < 0.88:
+                    continue
+                nvenue = ((cnt.get("venue") or {}).get("value") if isinstance(cnt.get("venue"), dict) else cnt.get("venue")) or ""
+                nauthors = ((cnt.get("authors") or {}).get("value") if isinstance(cnt.get("authors"), dict) else cnt.get("authors")) or []
+                nbib = ((cnt.get("_bibtex") or {}).get("value") if isinstance(cnt.get("_bibtex"), dict) else "") or ""
+                ym = re.search(r"(20\d{2})", str(nvenue) + " " + str(nbib))
+                nyear = int(ym.group(1)) if ym else None
+                fid = note.get("forum") or note.get("id")
+                is_withdrawn = any(w in str(nvenue).lower() for w in ("withdrawn", "desk reject"))
+                or_rec = {
+                    "title": str(ntitle).strip(),
+                    "authors": [str(a) for a in nauthors] if isinstance(nauthors, list) else [],
+                    "year": nyear,
+                    "venue": str(nvenue).strip(),
+                    "is_published_venue": bool(nvenue and not is_preprint_venue(str(nvenue))),
+                    "doi": None,
+                    "arxiv_id": None,
+                    "s2_id": None,
+                    "openalex_id": None,
+                    "pmid": None,
+                    "citation_count": 0,
+                    "influential_citation_count": 0,
+                    "is_retracted": is_withdrawn,
+                    "tldr": None,
+                    "abstract": ((cnt.get("abstract") or {}).get("value") if isinstance(cnt.get("abstract"), dict) else None),
+                    "oa_pdf_url": f"https://openreview.net/pdf?id={fid}" if fid else None,
+                    "url": f"https://openreview.net/forum?id={fid}" if fid else None,
+                }
+                record = merge_paper_records(record, or_rec) if record else or_rec
+                break
 
     # 4. If we resolved via OpenAlex first and still lack S2 metadata (TLDR / s2_id), fetch S2 once
     if record and not record.get("s2_id") and not http.s2_throttled:
@@ -1320,7 +1420,9 @@ def extract_tex_citations(
         raise ValueError("Provide either --arxiv or --tex-dir")
 
     bib_map = parse_bib_and_bbl(src_dir)
-    cite_re = re.compile(r"\\(?:cite|citet|citep|citealp|citeauthor|autocite|parencite|textcite)\*?\[?[^\]]*\]?\{([^}]+)\}")
+    cite_re = re.compile(
+        r"\\(?:citeauthor|citealp|citet|citep|autocite|parencite|textcite|cite)\*?(?:\[[^\]]*\])*\{([^}]+)\}"
+    )
     sec_re = re.compile(r"\\(?:section|subsection|subsubsection)\*?\{([^}]+)\}")
 
     contexts: list[dict[str, Any]] = []
@@ -1385,9 +1487,61 @@ def extract_tex_citations(
 # Subcommand 5: Zero-Hallucination Canonical `.bib` Verifier & Upgrader
 # ---------------------------------------------------------------------------
 
+def _parse_bibtex_fields(body: str) -> dict[str, str]:
+    """Parses arbitrary-depth nested-brace, quoted, or bare BibTeX field values."""
+    fields: dict[str, str] = {}
+    i = 0
+    n = len(body)
+    while i < n:
+        while i < n and body[i] in " \t\r\n,":
+            i += 1
+        if i >= n:
+            break
+        m_name = re.match(r"([a-zA-Z0-9_\-]+)\s*=\s*", body[i:])
+        if not m_name:
+            i += 1
+            continue
+        fname = m_name.group(1).lower()
+        i += m_name.end()
+        if i >= n:
+            break
+        if body[i] == "{":
+            depth = 1
+            i += 1
+            start = i
+            while i < n and depth > 0:
+                if body[i] == "\\" and i + 1 < n:
+                    i += 2
+                    continue
+                if body[i] == "{":
+                    depth += 1
+                elif body[i] == "}":
+                    depth -= 1
+                i += 1
+            raw_val = body[start : max(start, i - 1)]
+        elif body[i] == '"':
+            i += 1
+            start = i
+            while i < n:
+                if body[i] == "\\" and i + 1 < n:
+                    i += 2
+                    continue
+                if body[i] == '"':
+                    break
+                i += 1
+            raw_val = body[start:i]
+            i += 1
+        else:
+            start = i
+            while i < n and body[i] not in ",\r\n":
+                i += 1
+            raw_val = body[start:i]
+        fields[fname] = re.sub(r"\s+", " ", raw_val).strip()
+    return fields
+
+
 def parse_bibtex_file(bib_text: str) -> list[dict[str, Any]]:
     entries: list[dict[str, Any]] = []
-    # Match @type{key, ...} with balanced brace awareness
     idx = 0
     n = len(bib_text)
     while idx < n:
@@ -1406,6 +1560,9 @@ def parse_bibtex_file(bib_text: str) -> list[dict[str, Any]]:
         brace_depth = 1
         pos = at_pos + m_head.end()
         while pos < n and brace_depth > 0:
+            if bib_text[pos] == "\\" and pos + 1 < n:
+                pos += 2
+                continue
             if bib_text[pos] == "{":
                 brace_depth += 1
             elif bib_text[pos] == "}":
@@ -1413,11 +1570,7 @@ def parse_bibtex_file(bib_text: str) -> list[dict[str, Any]]:
             pos += 1
         body = bib_text[at_pos + m_head.end() : pos - 1]
         raw_block = bib_text[at_pos:pos]
-        fields: dict[str, str] = {}
-        for fm in re.finditer(r"(\w+)\s*=\s*(\{(?:[^{}]|\{[^{}]*\})*\}|\"[^\"]*\"|\d+)", body, flags=re.DOTALL):
-            fname = fm.group(1).lower().strip()
-            fval = re.sub(r"\s+", " ", fm.group(2).strip()).strip("{}\"")
-            fields[fname] = fval
+        fields = _parse_bibtex_fields(body)
         entries.append({"entry_type": etype, "key": key, "fields": fields, "raw": raw_block})
         idx = pos
     return entries
@@ -1498,10 +1651,28 @@ def format_canonical_bibtex(key: str, rec: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def scan_tex_cited_keys(tex_target: str) -> set[str]:
+    p = Path(tex_target).expanduser().resolve()
+    tex_files = [p] if p.is_file() else sorted(p.rglob("*.tex"))
+    cite_re = re.compile(
+        r"\\(?:citeauthor|citealp|citet|citep|autocite|parencite|textcite|cite)\*?(?:\[[^\]]*\])*\{([^}]+)\}"
+    )
+    cited: set[str] = set()
+    for tf in tex_files:
+        for ln in tf.read_text(encoding="utf-8", errors="ignore").splitlines():
+            clean_ln = re.sub(r"(?<!\\)%.*$", "", ln)
+            for m in cite_re.finditer(clean_ln):
+                for k in m.group(1).split(","):
+                    if k.strip():
+                        cited.add(k.strip())
+    return cited
+
+
 def verify_bibliography(
     http: CachedHttpClient,
     bib_path: str | None,
     raw_ids: list[str],
+    tex_target: str | None = None,
 ) -> dict[str, Any]:
     items_to_check: list[dict[str, Any]] = []
     if bib_path:
@@ -1515,16 +1686,20 @@ def verify_bibliography(
     results: list[dict[str, Any]] = []
     verified_bib_blocks: list[str] = []
     counts: Counter[str] = Counter()
+    canonical_to_keys: defaultdict[str, list[str]] = defaultdict(list)
 
     for entry in items_to_check:
         key = entry["key"]
         f = entry["fields"]
+        url_field = f.get("url") or ""
+        or_probe = url_field if "openreview.net" in url_field.lower() else None
         probe = (
             f.get("doi")
             or f.get("eprint")
             or f.get("arxivid")
+            or or_probe
             or f.get("note_query")
-            or f.get("title")
+            or clean_latex_text(f.get("title") or "")
             or ""
         )
         if not probe:
@@ -1533,18 +1708,18 @@ def verify_bibliography(
             continue
 
         resolved = resolve_paper(http, probe)
-        # If DOI/eprint failed or mismatched title, double-check by title
-        if resolved and f.get("title"):
-            sim = title_similarity(f["title"], resolved.get("title") or "")
+        clean_in_title = clean_latex_text(f["title"]) if f.get("title") else ""
+        if resolved and clean_in_title:
+            sim = title_similarity(clean_in_title, resolved.get("title") or "")
             if sim < 0.60:
-                by_title = resolve_paper(http, f["title"])
-                if by_title and title_similarity(f["title"], by_title.get("title") or "") >= 0.75:
+                by_title = resolve_paper(http, clean_in_title)
+                if by_title and title_similarity(clean_in_title, by_title.get("title") or "") >= 0.75:
                     resolved = by_title
                 elif sim < 0.45:
                     resolved = None
-        elif not resolved and f.get("title"):
-            by_title = resolve_paper(http, f["title"])
-            if by_title and title_similarity(f["title"], by_title.get("title") or "") >= 0.75:
+        elif not resolved and clean_in_title:
+            by_title = resolve_paper(http, clean_in_title)
+            if by_title and title_similarity(clean_in_title, by_title.get("title") or "") >= 0.75:
                 resolved = by_title
 
         if not resolved:
@@ -1555,10 +1730,15 @@ def verify_bibliography(
                     "status": "UNVERIFIED_HALLUCINATION_RISK",
                     "input_title": f.get("title"),
                     "input_probe": probe,
-                    "reason": "No matching scholarly work found across Semantic Scholar, OpenAlex, Crossref, or arXiv.",
+                    "reason": "No matching scholarly work found across Semantic Scholar, OpenAlex, Crossref, OpenReview, or arXiv.",
                 }
             )
             continue
+
+        # Author-surname overlap sanity check when input .bib specifies authors
+        in_surnames = extract_author_surnames(f.get("author", "")) if f.get("author") else set()
+        res_surnames = extract_author_surnames(resolved.get("authors") or [])
+        author_mismatch = bool(in_surnames and res_surnames and not (in_surnames & res_surnames))
 
         cr = check_crossref_integrity(http, resolved["doi"]) if resolved.get("doi") else {}
         is_ret = bool(resolved.get("is_retracted") or cr.get("is_retracted"))
@@ -1566,12 +1746,15 @@ def verify_bibliography(
 
         orig_venue = f.get("booktitle") or f.get("journal") or ""
         orig_was_preprint = is_preprint_venue(orig_venue) or entry["entry_type"] == "misc"
+        in_years = re.findall(r"\d{4}", f.get("year") or "")
 
         if is_ret:
             status = "RETRACTED_OR_WITHDRAWN"
+        elif author_mismatch:
+            status = "METADATA_AUTHOR_MISMATCH"
         elif orig_was_preprint and resolved.get("is_published_venue") and f.get("title"):
             status = "UPGRADE_AVAILABLE_TO_PUBLISHED"
-        elif f.get("year") and resolved.get("year") and abs(int(re.findall(r"\d{4}", f["year"])[0]) - int(resolved["year"])) > 1 and not orig_was_preprint:
+        elif in_years and resolved.get("year") and abs(int(in_years[0]) - int(resolved["year"])) > 1 and not orig_was_preprint:
             status = "METADATA_YEAR_MISMATCH"
         elif resolved.get("is_published_venue"):
             status = "VERIFIED_PUBLISHED"
@@ -1579,13 +1762,13 @@ def verify_bibliography(
             status = "VERIFIED_PREPRINT"
 
         counts[status] += 1
-        # Generate smart key if user passed bare IDs
         out_key = key
         if "note_query" in f and resolved.get("authors") and resolved.get("year"):
             surname = re.sub(r"[^a-zA-Z]", "", resolved["authors"][0].split()[-1]).lower()
             first_word = (normalize_title(resolved.get("title") or "paper").split() or ["paper"])[0]
             out_key = f"{surname}{resolved['year']}{first_word}"
 
+        canonical_to_keys[resolved["canonical_id"]].append(out_key)
         canonical_bib = format_canonical_bibtex(out_key, resolved)
         if not is_ret:
             verified_bib_blocks.append(canonical_bib)
@@ -1602,9 +1785,23 @@ def verify_bibliography(
             }
         )
 
+    duplicate_work_keys = {cid: ks for cid, ks in canonical_to_keys.items() if len(ks) > 1}
+    manuscript_check: dict[str, Any] | None = None
+    if tex_target:
+        cited_in_tex = scan_tex_cited_keys(tex_target)
+        bib_keys = {e["key"] for e in items_to_check}
+        manuscript_check = {
+            "cited_in_tex_count": len(cited_in_tex),
+            "undefined_cite_keys_in_tex": sorted(cited_in_tex - bib_keys),
+            "unused_bib_keys": sorted(bib_keys - cited_in_tex),
+            "duplicate_work_keys": duplicate_work_keys,
+        }
+
     return {
         "summary_counts": dict(counts),
         "total_checked": len(items_to_check),
+        "duplicate_work_keys": duplicate_work_keys,
+        "manuscript_cross_check": manuscript_check,
         "entries": results,
         "verified_bibtex_bundle": "\n\n".join(verified_bib_blocks) + ("\n" if verified_bib_blocks else ""),
     }
@@ -1669,10 +1866,11 @@ def main() -> None:
     # 5. bib-verify
     p_bib = sub.add_parser(
         "bib-verify",
-        help="Verify .bib file or IDs against Crossref/OpenAlex/S2/arXiv, flag retractions/hallucinations, upgrade preprints",
+        help="Verify .bib file or IDs against Crossref/OpenAlex/S2/OpenReview/arXiv, check .tex citations, upgrade preprints",
     )
     p_bib.add_argument("--bib", help="Path to input .bib file")
-    p_bib.add_argument("--ids", nargs="*", default=[], help="Additional DOIs / arXiv IDs / titles to verify and emit BibTeX")
+    p_bib.add_argument("--ids", nargs="*", default=[], help="Additional DOIs / arXiv IDs / OpenReview URLs / titles to verify")
+    p_bib.add_argument("--tex-dir", help="Optional manuscript .tex file or directory to detect undefined [?] or unused citations")
     p_bib.add_argument("--output-bib", help="Write verified & upgraded canonical .bib file to this path")
     p_bib.add_argument("--report", "-o", help="Write verification JSON report to this path")
 
@@ -1707,7 +1905,7 @@ def main() -> None:
     elif args.cmd == "bib-verify":
         if not args.bib and not args.ids:
             parser.error("Provide --bib <file.bib> and/or --ids <id1 ...>")
-        rep = verify_bibliography(http, args.bib, args.ids)
+        rep = verify_bibliography(http, args.bib, args.ids, tex_target=args.tex_dir)
         if args.output_bib:
             out_b = Path(args.output_bib).expanduser()
             out_b.parent.mkdir(parents=True, exist_ok=True)

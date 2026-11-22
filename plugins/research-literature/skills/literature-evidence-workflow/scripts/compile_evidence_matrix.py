@@ -4,8 +4,9 @@ r"""Compiles structured per-paper extraction JSON into CSV, Markdown, and Bookta
 Enforces `scientific-figures` Booktabs publication table formatting:
 - Caption ABOVE the table
 - `\toprule`, `\midrule`, `\bottomrule` only (ZERO vertical bars `|`, ZERO inter-row `\hline`s)
-- Left-aligned text columns (`l` / `p{...}`), right-aligned numeric columns (`r`)
-- Preserves provenance anchors in Markdown synthesis notes
+- `tabularx` (`>{\raggedright\arraybackslash}X`) for prose columns so wide tables never overflow margins
+- Left-aligned text columns (`l` / `X`), right-aligned numeric columns (`r`) with matching right-aligned headers
+- Preserves inline LaTeX math (`$...$`) and `\cite{...}` commands while mapping Unicode math symbols cleanly
 """
 
 # /// script
@@ -35,10 +36,55 @@ LATEX_ESCAPE_MAP = {
     "^": r"\textasciicircum{}",
 }
 
+UNICODE_MATH_MAP = {
+    "Δ": r"$\Delta$",
+    "±": r"$\pm$",
+    "×": r"$\times$",
+    "≤": r"$\le$",
+    "≥": r"$\ge$",
+    "→": r"$\to$",
+    "←": r"$\leftarrow$",
+    "≈": r"$\approx$",
+    "≠": r"$\neq$",
+    "∞": r"$\infty$",
+    "α": r"$\alpha$",
+    "β": r"$\beta$",
+    "γ": r"$\gamma$",
+    "λ": r"$\lambda$",
+    "μ": r"$\mu$",
+    "σ": r"$\sigma$",
+}
+
+# Matches inline math $...$ or citation macros \cite...{...} so we preserve them verbatim
+PRESERVED_LATEX_TOKEN_RE = re.compile(
+    r"(\$[^$]+\$|\\(?:citeauthor|citealp|citet|citep|cite)\*?(?:\[[^\]]*\])*\{[^{}]+\})"
+)
+
+
+def _escape_plain_segment(seg: str) -> str:
+    out: list[str] = []
+    for ch in seg:
+        if ch in UNICODE_MATH_MAP:
+            out.append(UNICODE_MATH_MAP[ch])
+        elif ch in LATEX_ESCAPE_MAP:
+            out.append(LATEX_ESCAPE_MAP[ch])
+        else:
+            out.append(ch)
+    return "".join(out)
+
 
 def latex_escape(val: Any) -> str:
-    s = re.sub(r"\s+", " ", str(val if val is not None else "—")).strip()
-    return "".join(LATEX_ESCAPE_MAP.get(ch, ch) for ch in s)
+    s = re.sub(r"\s+", " ", str(val if val is not None else "---")).strip()
+    if s == "—":
+        return "---"
+    parts = PRESERVED_LATEX_TOKEN_RE.split(s)
+    rendered: list[str] = []
+    for idx, part in enumerate(parts):
+        if idx % 2 == 1:
+            rendered.append(part)
+        else:
+            rendered.append(_escape_plain_segment(part))
+    return "".join(rendered)
 
 
 def md_escape(val: Any) -> str:
@@ -50,8 +96,15 @@ def is_numeric_column(rows: list[dict[str, Any]], col: str) -> bool:
     vals = [str(r.get(col, "")).strip() for r in rows if r.get(col) not in (None, "", "—", "N/A")]
     if not vals:
         return False
-    num_re = re.compile(r"^[+-]?\d+(?:\.\d+)?(?:\s*[±%×xkMGB]+)?$")
+    num_re = re.compile(r"^[+-]?\d+(?:\.\d+)?(?:\s*(?:±|\+-)\s*\d+(?:\.\d+)?)?(?:\s*[%×xkMGBs]+)?$")
     return sum(1 for v in vals if num_re.match(v)) >= max(1, int(0.75 * len(vals)))
+
+
+def column_tex_spec(rows: list[dict[str, Any]], col: str, header: str) -> str:
+    if is_numeric_column(rows, col):
+        return "r"
+    max_len = max([len(header)] + [len(str(r.get(col, ""))) for r in rows])
+    return "l" if max_len <= 28 else r">{\raggedright\arraybackslash}X"
 
 
 DEFAULT_COLUMNS = [
@@ -68,18 +121,21 @@ DEFAULT_COLUMNS = [
 def main() -> None:
     parser = argparse.ArgumentParser(description="Compile JSON paper extractions into CSV, Markdown, and Booktabs LaTeX.")
     parser.add_argument("extractions_json", help="Input JSON array (or {'rows': [...]}) of extracted paper records")
-    parser.add_argument("--out-dir", required=True, help="Output directory for evidence_matrix.{csv,md,tex}")
+    parser.add_argument("--out-dir", required=True, help="Output directory for evidence_matrix.{csv,md} & comparison_table.tex")
     parser.add_argument(
         "--columns",
         help="Optional comma-separated field:Header pairs (e.g. 'citation_label:Study,core_mechanism:Mechanism')",
     )
-    parser.add_argument("--caption", default="Structured comparison of prior methods, assumptions, empirical regimes, and verified limitations.", help="Booktabs table caption (placed ABOVE table)")
+    parser.add_argument(
+        "--caption",
+        default="Structured comparison of prior methods, assumptions, empirical regimes, and verified limitations.",
+        help="Booktabs table caption (placed ABOVE table)",
+    )
     parser.add_argument("--label", default="tab:literature_comparison", help="LaTeX table label")
     args = parser.parse_args()
 
     raw = json.loads(Path(args.extractions_json).expanduser().read_text(encoding="utf-8"))
     rows: list[dict[str, Any]] = raw["rows"] if isinstance(raw, dict) and "rows" in raw else raw
-    # Filter to included papers if `included` boolean exists
     included_rows = [r for r in rows if r.get("included", True) is not False]
 
     if args.columns:
@@ -140,25 +196,38 @@ def main() -> None:
     md_path.write_text("\n".join(md_lines) + "\n", encoding="utf-8")
 
     # 3. Write Booktabs LaTeX Table (`comparison_table.tex`)
-    col_specs = ["r" if is_numeric_column(included_rows, k) else "l" for k, _ in cols]
+    specs = [column_tex_spec(included_rows, k, h) for k, h in cols]
+    use_tabularx = any("X" in sp for sp in specs)
+    env_name = "tabularx" if use_tabularx else "tabular"
+    env_open = (
+        f"\\begin{{tabularx}}{{\\textwidth}}{{@{{}}{''.join(specs)}@{{}}}}"
+        if use_tabularx
+        else f"\\begin{{tabular}}{{@{{\\extracolsep{{\\fill}}}}{''.join(specs)}@{{}}}}"
+    )
+    # Wilke Rule 4: Right-align headers over right-aligned numeric columns!
+    header_cells = [
+        f"\\multicolumn{{1}}{{r}}{{{latex_escape(h)}}}" if sp == "r" else latex_escape(h)
+        for (_, h), sp in zip(cols, specs)
+    ]
+
     tex_lines = [
-        "% Requires \\usepackage{booktabs} in preamble",
-        "% Formatted per Wilke Ch. 25 / Rougier Rule 8: zero vertical lines, zero inter-row lines, caption ABOVE",
+        "% Requires \\usepackage{booktabs,tabularx,array} in preamble",
+        "% Formatted per Wilke Ch. 22.3 / Rougier Rule 8: zero vertical lines, zero inter-row lines, caption ABOVE",
         "\\begin{table*}[t]",
         "  \\centering",
         f"  \\caption{{{latex_escape(args.caption)}}}",
         f"  \\label{{{args.label}}}",
-        f"  \\begin{{tabular}}{{@{{\\extracolsep{{\\fill}}}}{''.join(col_specs)}@{{}}}}",
+        f"  {env_open}",
         "    \\toprule",
-        "    " + " & ".join(latex_escape(h) for _, h in cols) + " \\\\",
+        "    " + " & ".join(header_cells) + " \\\\",
         "    \\midrule",
     ]
     for r in included_rows:
-        tex_lines.append("    " + " & ".join(latex_escape(r.get(k, "—")) for k, _ in cols) + " \\\\")
+        tex_lines.append("    " + " & ".join(latex_escape(r.get(k, "---")) for k, _ in cols) + " \\\\")
     tex_lines.extend(
         [
             "    \\bottomrule",
-            "  \\end{tabular}",
+            f"  \\end{{{env_name}}}",
             "\\end{table*}",
         ]
     )

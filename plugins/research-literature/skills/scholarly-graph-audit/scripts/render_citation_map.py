@@ -53,6 +53,13 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
     .text-xs { font-size: 12px; } .text-sm { font-size: 14px; } .font-medium { font-weight: 500; } .font-semibold { font-weight: 600; }
     .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .pointer-events-none { pointer-events: none; }
+    .space-y-2 > * + * { margin-top: 0.5rem; } .space-y-2\.5 > * + * { margin-top: 0.625rem; } .space-y-3 > * + * { margin-top: 0.75rem; }
+    [class*="bg-[var(--background)]"] { background-color: var(--background); }
+    [class*="bg-[var(--card)]"] { background-color: var(--card); }
+    [class*="bg-[var(--primary)]"] { background-color: var(--primary); }
+    [class*="text-[var(--foreground)]"] { color: var(--foreground); }
+    [class*="text-[var(--muted-foreground)]"] { color: var(--muted-foreground); }
+    [class*="text-[var(--primary-foreground)]"] { color: var(--primary-foreground); }
     button, input { font: inherit; color: inherit; background: transparent; cursor: pointer; }
     input { cursor: text; }
     a { text-decoration: none; }
@@ -446,10 +453,27 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
       if (connectedSeeds.length) {
         html += `<div class="text-[11px] text-[var(--muted-foreground)]"><strong>Connected Seed(s):</strong> ${connectedSeeds.map(escapeHtml).join(' · ')}</div>`;
       }
+      const bibType = n.is_published_venue ? ((/conference|proceedings|neurips|iclr|icml|cvpr|acl|emnlp/i).test(n.venue || '') ? 'inproceedings' : 'article') : 'misc';
+      const venueLine = n.is_published_venue ? `  ${bibType === 'inproceedings' ? 'booktitle' : 'journal'} = {${n.venue}},\n` : (n.arxiv_id ? `  howpublished = {arXiv preprint arXiv:${n.arxiv_id}},\n` : '');
+      const doiLine = n.doi ? `  doi = {${n.doi}},\n` : '';
+      const bibTexStr = `@${bibType}{${bibKey},\n  title = {${n.title || ''}},\n  author = {${(n.authors || ['Unknown']).join(' and ')}},\n${venueLine}  year = {${n.year || ''}},\n${doiLine}}`;
+
+      html += `<div class="pt-1 flex flex-wrap items-center gap-2">`;
       if (extUrl) {
-        html += `<div class="pt-1"><a href="${escapeHtml(extUrl)}" target="_blank" rel="noopener noreferrer" class="inline-block px-2.5 py-1 rounded bg-[var(--primary)] text-[var(--primary-foreground)] font-medium hover:opacity-90">Open Paper ↗</a></div>`;
+        html += `<a href="${escapeHtml(extUrl)}" target="_blank" rel="noopener noreferrer" class="inline-block px-2.5 py-1 rounded bg-[var(--primary)] text-[var(--primary-foreground)] font-medium hover:opacity-90">Open Paper ↗</a>`;
       }
+      html += `<button id="btnCopyBib" type="button" class="px-2 py-1 rounded border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] hover:opacity-90">Copy BibTeX</button></div>`;
       inspectorContent.innerHTML = html;
+
+      const copyBtn = document.getElementById('btnCopyBib');
+      if (copyBtn && navigator.clipboard) {
+        copyBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(bibTexStr).then(() => {
+            copyBtn.textContent = 'Copied ✓';
+            setTimeout(() => { copyBtn.textContent = 'Copy BibTeX'; }, 1400);
+          });
+        });
+      }
     }
 
     function hitTest(sx, sy) {

@@ -1,22 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Cross-Agent Installer & Sync Script for scientific-research-skills
+# Cross-Agent Installer, Sync & Health Check Script for scientific-research-skills
 # Supports: Antigravity / Gemini CLI, Claude Code, Codex CLI, and Cursor.
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TARGET="antigravity"
+MODE="install"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/install.sh [--target antigravity|claude|codex|cursor|all]
+Usage: ./scripts/install.sh [--target antigravity|claude|codex|cursor|all] [--check]
 
-Targets:
-  antigravity  Install/sync bundled plugins into ~/.gemini/config/plugins/ (default)
-  claude       Install skills into ~/.claude/skills/
-  codex        Install skills into ~/.codex/skills/
-  cursor       Install skills into ~/.cursor/skills/
-  all          Install across all detected agent directories above
+Options:
+  --target, -t   Destination agent runtime (default: antigravity)
+  --check, -c    Verify prerequisites (uv, python3) and check installed skill directories
+  --help, -h     Show this help message
 EOF
 }
 
@@ -25,6 +24,10 @@ while [[ $# -gt 0 ]]; do
     --target|-t)
       TARGET="${2:-}"
       shift 2
+      ;;
+    --check|-c)
+      MODE="check"
+      shift
       ;;
     --help|-h)
       usage
@@ -37,6 +40,27 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+if [[ "$MODE" == "check" ]]; then
+  echo "=== Prerequisites ==="
+  if command -v uv >/dev/null 2>&1; then
+    echo "  [OK] uv: $(uv --version)"
+  else
+    echo "  [WARN] uv not found on PATH (install: curl -LsSf https://astral.sh/uv/install.sh | sh)"
+  fi
+  echo "=== Installed Locations ==="
+  for d in \
+    "$HOME/.gemini/config/plugins/research-literature" \
+    "$HOME/.gemini/config/plugins/scientific-writing" \
+    "$HOME/.claude/skills/scholarly-graph-audit" \
+    "$HOME/.codex/skills/scholarly-graph-audit" \
+    "$HOME/.cursor/skills/scholarly-graph-audit"; do
+    if [[ -d "$d" ]]; then
+      echo "  [PRESENT] $d"
+    fi
+  done
+  exit 0
+fi
 
 install_antigravity() {
   local dest="$HOME/.gemini/config/plugins"

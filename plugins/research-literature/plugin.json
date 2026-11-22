@@ -1,7 +1,7 @@
 {
   "name": "research-literature",
   "displayName": "Research Literature Intelligence",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "lrgthu",
   "repository": "https://github.com/lrgthu/scientific-research-skills",
   "description": "Open-stack scholarly literature intelligence suite: seed-based citation lineage & interactive graph mapping (ResearchRabbit/Litmaps), in-text citation context/stance & retraction auditing (Scite + Crossref Retraction Watch), iterative deep recall & parallel arXiv LaTeX/full-text evidence matrices (Undermind + Elicit), and zero-hallucination canonical .bib verification.",
