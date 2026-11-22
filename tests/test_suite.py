@@ -241,6 +241,77 @@ class TestProseVisualSymbiosisLinter(unittest.TestCase):
         rep = lmv.lint_tex_source(good_tex)
         self.assertTrue(rep["clean"], msg=json.dumps(rep, indent=2))
 
+    def test_abstract_abt_explicit_and_implicit_scaffolding_pass(self) -> None:
+        explicit_abt_tex = r"""
+        \begin{abstract}
+        Long-context language models rely on key-value caches during autoregressive decoding.
+        At 128k tokens, cache memory exceeds model weights, and uniform token eviction erases rare retrieval anchors.
+        However, existing importance scorers recompute dense attention weights at quadratic cost.
+        To preserve retrieval anchors in linear time, we introduce spectral anchor routing, reducing cache memory 4.2-fold with zero recall loss.
+        \end{abstract}
+        """
+        rep_exp = lmv.lint_tex_source(explicit_abt_tex)
+        self.assertTrue(rep_exp["clean"], msg=json.dumps(rep_exp, indent=2))
+        self.assertTrue(rep_exp["abstract_narrative"]["present"])
+        self.assertEqual(rep_exp["counts"]["abstract_narrative_warnings"], 0)
+
+        # Removable-scaffolding ABT (no literal 'but'/'however', uses concrete bottleneck/failure verb)
+        implicit_abt_tex = r"""
+        \abstract{
+          Mixture-of-experts transformers scale parameter capacity at constant per-token FLOPs.
+          Under domain shift, top-k token routing collapses onto two dominant experts and degrades tail-class accuracy by 14\%.
+          To restore balanced utilization without auxiliary loss tuning, we introduce sinkhorn Sink-Gate routing.
+          Across six benchmarks, Sink-Gate recovers full dense accuracy at 1.9x higher throughput.
+        }
+        """
+        rep_imp = lmv.lint_tex_source(implicit_abt_tex)
+        self.assertTrue(rep_imp["clean"], msg=json.dumps(rep_imp, indent=2))
+        self.assertEqual(rep_imp["counts"]["abstract_narrative_warnings"], 0)
+
+    def test_abstract_aaa_dhy_and_premature_openers_flagged(self) -> None:
+        aaa_tex = r"""
+        \begin{abstract}
+        Graph neural networks aggregate neighborhood representations across molecular topologies.
+        Message passing layers compute permutation-equivariant node embeddings at each hop.
+        Readout pooling combines node vectors into graph-level molecular descriptors.
+        Benchmark evaluations report validation scores across twelve quantum chemistry properties.
+        \end{abstract}
+        """
+        rep_aaa = lmv.lint_tex_source(aaa_tex)
+        self.assertFalse(rep_aaa["clean"])
+        codes_aaa = [w["code"] for w in rep_aaa["abstract_narrative"]["warnings"]]
+        self.assertIn("NO_CONTRADICTION_AAA_ABSTRACT", codes_aaa)
+
+        dhy_tex = r"""
+        \begin{abstract}
+        We measured expert activation entropy across sixteen sparse language models.
+        Despite auxiliary load-balancing penalties, routing entropy drops during mid-training.
+        However, increasing the balance coefficient degrades perplexity on code tokens.
+        Yet freezing router logits early prevents specialization on reasoning benchmarks.
+        \end{abstract}
+        """
+        rep_dhy = lmv.lint_tex_source(dhy_tex)
+        self.assertFalse(rep_dhy["clean"])
+        codes_dhy = [w["code"] for w in rep_dhy["abstract_narrative"]["warnings"]]
+        self.assertIn("ZERO_CONTEXT_ACTION_OPENER", codes_dhy)
+        self.assertIn("CONSECUTIVE_CONTRADICTION_ZIGZAG", codes_dhy)
+
+        bare_s1_tex = r"""
+        \begin{abstract}
+        However, sparse attention kernels underutilize tensor cores at batch size one.
+        To saturate memory bandwidth, we tile key-value blocks across warp groups.
+        \end{abstract}
+        """
+        rep_bare = lmv.lint_tex_source(bare_s1_tex)
+        self.assertFalse(rep_bare["clean"])
+        codes_bare = [w["code"] for w in rep_bare["abstract_narrative"]["warnings"]]
+        self.assertIn("PREMATURE_CONTRADICTION_OPENER", codes_bare)
+
+        # --no-abstract-lint bypasses abstract warnings
+        rep_suppressed = lmv.lint_tex_source(bare_s1_tex, check_abstract=False)
+        self.assertTrue(rep_suppressed["clean"])
+        self.assertEqual(rep_suppressed["counts"]["abstract_narrative_warnings"], 0)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -5,8 +5,8 @@
     "url": "https://github.com/lrgthu"
   },
   "metadata": {
-    "description": "End-to-end open-stack scientific research skills: citation graph lineage, stance/retraction auditing, LaTeX/full-text evidence matrices, anti-patchwork scholarly writing, and publication-grade data visualization.",
-    "version": "1.1.0"
+    "description": "End-to-end open-stack scientific research skills: citation graph lineage, stance/retraction auditing, LaTeX/full-text evidence matrices, anti-patchwork scholarly writing & ABT narrative architecture, and publication-grade data visualization.",
+    "version": "1.2.0"
   },
   "plugins": [
     {
@@ -19,8 +19,8 @@
     {
       "name": "scientific-writing",
       "source": "./plugins/scientific-writing",
-      "description": "Scholarly writing & publication figure suite: Anti-Patchwork Holistic Reconstruction, Author Rebuttals, Schimel OCAR/Funnel/SUCCES storytelling, Gopen & Swan reader-expectation mechanics, and Wilke + Rougier publication figure & Booktabs table engineering.",
-      "version": "1.4.0",
+      "description": "Scholarly writing, scientific storytelling & publication figure suite: Anti-Patchwork Holistic Reconstruction, Olson ABT/Narrative Spectrum & Dobzhansky theme tools, Author Rebuttals & Research Talks, Schimel OCAR/Funnel/SUCCES, Gopen & Swan reader-expectation mechanics, and Wilke + Rougier publication figure & Booktabs table engineering.",
+      "version": "1.5.0",
       "license": "MIT"
     }
   ]

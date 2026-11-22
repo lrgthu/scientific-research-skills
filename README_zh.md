@@ -28,7 +28,8 @@
        ├── scientific-writing:
        │    • 反向文献按需联动（写 Intro/Related Work、H1->H2 主线转向及定稿 .bib 核验时自动拉起 [1]，纯润色走零延迟快车道）
        │    • 反补丁全局复盘重写协议（新实验迭代后零数据/公式/引文退化的整体重构）
-       │    • 图文表互文八律与 LaTeX 顺序/孤儿图表/结论式图注静态检查器（`lint_manuscript_visuals.py`）
+       │    • 叙事光谱诊断（Olson `AAA/ABT/DHY`）、Dobzhansky 核心母题、`iABT->cABT->kABT` 浓缩、阴性结果重构与学术报告编排
+       │    • 图文表互文八律与 LaTeX 顺序/孤儿图表/结论式图注/摘要叙事静态检查器（`lint_manuscript_visuals.py`）
        │    • 宏观叙事结构（Schimel OCAR / 预示型 OCAR / 基金 ABDCE / Nature LDR / 沙漏对称 / Rebuttal 回复）
        │    • 读者预期句法力学（Gopen & Swan Topic -> 强动作动词 -> Stress 闭合 + SCFL 审校）
        └── scientific-figures:
@@ -124,7 +125,7 @@ uv run "$WF_CLI/compile_evidence_matrix.py" ./literature/extractions.json --out-
 ## 方法论致谢与开源协议
 
 本套件中的规则、工作流与代码均为 Clean-Room 原创工程实现，方法论体系致谢以下经典著作与开放学术基础设施：
-- **学术叙事与句法结构**：Joshua Schimel, *Writing Science* (2012)；George D. Gopen & Judith A. Swan, *"The Science of Scientific Writing"* (1990)。
+- **学术叙事与句法结构**：Joshua Schimel, *Writing Science* (2012)；Randy Olson, *Houston, We Have a Narrative: Why Science Needs Story* (2015)；George D. Gopen & Judith A. Swan, *"The Science of Scientific Writing"* (1990)。
 - **科研可视化与制表规范**：Claus O. Wilke, *Fundamentals of Data Visualization* (2019)；Nicolas P. Rougier, Michael Droettboom & Philip E. Bourne, *"Ten Simple Rules for Better Figures"* (*PLOS Computational Biology*, 2014, CC BY 4.0)；Okabe & Ito 色觉安全调色板。
 - **开放学术数据源**：Semantic Scholar (AI2 / SPECTER2)、OpenAlex、Crossref (Retraction Watch) 与 arXiv（请遵守各平台 API 服务条款及所检索论文自身的版权许可）。
 

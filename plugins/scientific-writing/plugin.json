@@ -1,14 +1,14 @@
 {
   "name": "scientific-writing",
   "displayName": "Scientific Writing & Figures",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "author": "lrgthu",
   "repository": "https://github.com/lrgthu/scientific-research-skills",
-  "description": "Global research communication suite: decoupled scientific-writing skill (Schimel + Gopen & Swan + Anti-Patchwork Holistic Reconstruction) and scientific-figures skill (Wilke's Fundamentals of Data Visualization + Rougier et al.'s Ten Simple Rules for Better Figures + Booktabs table discipline).",
+  "description": "Global research communication suite: decoupled scientific-writing skill (Schimel + Olson ABT/Narrative Spectrum + Gopen & Swan + Anti-Patchwork Holistic Reconstruction) and scientific-figures skill (Wilke's Fundamentals of Data Visualization + Rougier et al.'s Ten Simple Rules + Booktabs tables).",
   "logo": "assets/logo.svg",
   "suggestedPrompts": [
-    "Audit this manuscript after our new experiments and perform a holistic OCAR re-distillation and rewrite instead of patching",
-    "Design and render publication-ready figures, clean tables, and self-contained captions following Wilke's Fundamentals of Data Visualization and Ten Simple Rules",
-    "Run a full SCFL + Gopen-Swan Topic/Stress/Verb audit on my draft to expose logical gaps and tighten prose"
+    "Audit this manuscript after our new experiments and perform a holistic OCAR + ABT re-distillation and rewrite instead of patching",
+    "Design and render publication-ready figures, clean tables, and declarative takeaway captions following Wilke and Ten Simple Rules",
+    "Run a full Narrative Spectrum (AAA/ABT/DHY) + SCFL + Gopen-Swan Topic/Stress/Verb audit on my draft or talk outline"
   ]
 }

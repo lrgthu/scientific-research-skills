@@ -28,7 +28,8 @@ Seed Papers / Fine-Grained Research Question
        ├── scientific-writing:
        │    • Conditional Literature Bridge (Calls back to [1] for Intro/Related Work, H1->H2 Pivots & .bib Verify)
        │    • Anti-Patchwork Holistic Reconstruction Protocol (Zero Factual/LaTeX Regression)
-       │    • Prose <-> Visual Symbiosis Laws & LaTeX Callout/Caption Linter (`lint_manuscript_visuals.py`)
+       │    • Narrative Spectrum (`AAA/ABT/DHY`), Dobzhansky Theme, `iABT->cABT->kABT`, Null-Result Reframing & Talks
+       │    • Prose <-> Visual Symbiosis Laws & LaTeX Callout/Caption/Abstract Linter (`lint_manuscript_visuals.py`)
        │    • Macro Storytelling (Schimel OCAR / Telegraphed OCAR / ABDCE / LDR / Hourglass / Rebuttals)
        │    • Reader-Expectation Mechanics (Gopen & Swan Topic -> Action Verb -> Stress + SCFL)
        └── scientific-figures:
@@ -187,6 +188,7 @@ The rules, workflows, and presets in this repository are clean-room operationali
 
 - **Scientific Storytelling & Prose Architecture**:
   - Joshua Schimel, *Writing Science: How to Write Papers That Get Cited and Proposals That Get Funded* (Oxford University Press, 2012).
+  - Randy Olson, *Houston, We Have a Narrative: Why Science Needs Story* (University of Chicago Press, 2015).
   - George D. Gopen & Judith A. Swan, *"The Science of Scientific Writing,"* *American Scientist* 78(6), 550–558 (1990).
 - **Scientific Data Visualization & Publication Tables**:
   - Claus O. Wilke, *Fundamentals of Data Visualization* (O'Reilly Media, 2019).

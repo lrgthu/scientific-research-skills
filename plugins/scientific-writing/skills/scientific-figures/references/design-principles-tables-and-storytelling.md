@@ -99,10 +99,12 @@ Never leave opaque overlapping points (`N > 50` or rounded values) hiding subgro
 
 ---
 
-## 3. Visual Storytelling in Manuscripts & Talks (Wilke Ch. 29 + Schimel `OCAR`)
+## 3. Visual Storytelling in Manuscripts & Talks (Wilke Ch. 29 + Schimel `OCAR` + Olson `ABT`)
 
-1. **Figures Inside the Story Arc (`OCAR` / `LDR`)**:
-   - A single static figure rarely carries a complete `Opening → Challenge → Action → Resolution` arc unless condensed into a tight `Challenge + Resolution` lead graphic. Sequence figures deliberately across the narrative (e.g., `Fig. 1` establishes the **Challenge/Anomaly**, `Fig. 2` delivers the **Mechanistic Resolution**).
+1. **Visual `ABT` Sequencing Inside the Story Arc (`OCAR` / `LDR` / Slide Decks)**:
+   - A single static figure rarely carries a complete `Opening → Challenge → Action → Resolution` arc unless condensed into a tight `Challenge + Resolution` lead graphic.
+   - **Ban `"And Here's Another Graph"` (`AAA`) Monotony**: Never march through slides or figures as disconnected fact dumps (`"Here is feeding rate, and here is digestion rate..."`). Thread figures as visual **`ABT` triads**: `Baseline/Expected Pattern [AND]` → `Contradiction/Failure Breakdown [BUT]` → `Proposed Mechanism/Resolution [THEREFORE]`.
+   - **"Arouse and Fulfill" in Oral Presentations**: Open a talk with one concrete, ultra-specific visual anomaly or failure example to spark curiosity (*Arouse*) before presenting multi-panel systematic validations (*Fulfill*).
 2. **"Make a Figure for the Generals"**:
    - Busy reviewers, editors, and program managers will not spend 20 minutes decoding a 6-dimensional hyper-plot. *"When you try to show too much data at once, you may end up not showing anything."* Strip tangential variables to spotlight the primary comparison, or split into two clean figures.
 3. **Build Up Toward Complex Figures**:
