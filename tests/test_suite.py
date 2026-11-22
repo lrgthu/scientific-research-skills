@@ -312,6 +312,42 @@ class TestProseVisualSymbiosisLinter(unittest.TestCase):
         self.assertTrue(rep_suppressed["clean"])
         self.assertEqual(rep_suppressed["counts"]["abstract_narrative_warnings"], 0)
 
+    def test_assertion_evidence_visual_inventory_and_topic_captions(self) -> None:
+        tex = r"""
+        \section{Introduction}
+        Standard eviction drops dormant keys, whereas spectral sketching preserves them (Fig.~\ref{fig:overview}).
+
+        \begin{figure}[t]
+          \caption{Overview of Spectral Anchor Routing comparing dense eviction and rank-16 sketching.}
+          \label{fig:overview}
+        \end{figure}
+
+        \section{Experiments}
+        Rank-16 sketches recover 99.1\% recall across distances (Fig.~\ref{fig:mech}a--b).
+        Ablation sweeps are reported in Fig.~\ref{fig:ablation}.
+
+        \begin{figure}[t]
+          \caption{\textbf{Rapid singular-value decay enables compact key sketches.} (a) Dormant-head recall vs. distance. (b) Key spectrum decay. (c) Uncited warmup loss curve.}
+          \label{fig:mech}
+        \end{figure}
+
+        \begin{figure}[t]
+          \caption{Ablation study on routing temperature and sketch rank.}
+          \label{fig:ablation}
+        \end{figure}
+        """
+        rep = lmv.lint_tex_source(tex)
+        self.assertFalse(rep["clean"])
+        # Overview schematic is allowed; empirical topic-label 'Ablation study on...' is flagged!
+        self.assertEqual([w["label"] for w in rep["weak_descriptive_figure_captions"]], ["fig:ablation"])
+        inv_by_label = {item["label"]: item for item in rep["visual_inventory"]}
+        self.assertEqual(inv_by_label["fig:overview"]["section"], "Introduction")
+        self.assertEqual(inv_by_label["fig:mech"]["section"], "Experiments")
+        self.assertEqual(inv_by_label["fig:mech"]["subpanels_declared"], ["a", "b", "c"])
+        self.assertEqual(inv_by_label["fig:mech"]["subpanels_explicitly_cited"], ["a", "b"])
+        self.assertEqual(inv_by_label["fig:mech"]["uncited_subpanels_hint"], ["c"])
+        self.assertIn("Rank-16 sketches recover", inv_by_label["fig:mech"]["first_callout_sentence"])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -33,6 +33,7 @@ Seed Papers / Fine-Grained Research Question
        │    • Macro Storytelling (Schimel OCAR / Telegraphed OCAR / ABDCE / LDR / Hourglass / Rebuttals)
        │    • Reader-Expectation Mechanics (Gopen & Swan Topic -> Action Verb -> Stress + SCFL)
        └── scientific-figures:
+            • 5-Gate Figure/Table Assertion-Evidence Audit (Doumont + Alley + Frankel & DePace + Cargill/Schimel)
             • Perceptual & Scale Laws (Wilke Ch. 1–29 + Rougier Ten Simple Rules)
             • Okabe–Ito CVD-Safe Palettes, Exact Journal Widths, & Clean Booktabs Tables
 ```
@@ -78,7 +79,7 @@ scientific-research-skills/
             │   └── references/{macro-structure-and-sections.md, micro-style-flow-and-condensing.md, scfl-editing-and-examples.md}
             └── scientific-figures/
                 ├── SKILL.md
-                ├── references/{chart-directory-and-encodings.md, design-principles-tables-and-storytelling.md}
+                ├── references/{figure-table-assertion-evidence-audit.md, chart-directory-and-encodings.md, design-principles-tables-and-storytelling.md}
                 └── resources/publication_rcparams.py
 ```
 
@@ -188,9 +189,13 @@ The rules, workflows, and presets in this repository are clean-room operationali
 
 - **Scientific Storytelling & Prose Architecture**:
   - Joshua Schimel, *Writing Science: How to Write Papers That Get Cited and Proposals That Get Funded* (Oxford University Press, 2012).
+  - Margaret Cargill & Patrick O'Connor, *Writing Scientific Research Articles: Strategy and Steps* (3rd ed., Wiley-Blackwell, 2021).
   - Randy Olson, *Houston, We Have a Narrative: Why Science Needs Story* (University of Chicago Press, 2015).
   - George D. Gopen & Judith A. Swan, *"The Science of Scientific Writing,"* *American Scientist* 78(6), 550–558 (1990).
-- **Scientific Data Visualization & Publication Tables**:
+- **Assertion-Evidence Visual Auditing, Data Visualization & Publication Tables**:
+  - Jean-luc Doumont, *Trees, Maps, and Theorems: Effective Communication for Rational Minds* (Principiae, 2009).
+  - Michael Alley, *The Craft of Scientific Writing* (4th ed., Springer, 2018) & *The Craft of Scientific Presentations* (2nd ed., Springer, 2013).
+  - Felice C. Frankel & Angela H. DePace, *Visual Strategies: A Practical Guide to Graphics for Scientists and Engineers* (Yale University Press, 2012).
   - Claus O. Wilke, *Fundamentals of Data Visualization* (O'Reilly Media, 2019).
   - Nicolas P. Rougier, Michael Droettboom & Philip E. Bourne, *"Ten Simple Rules for Better Figures,"* *PLOS Computational Biology* 10(9): e1003833 (2014, CC BY 4.0).
   - Masataka Okabe & Kei Ito, *Color Universal Design (CUD)* palette (2008).

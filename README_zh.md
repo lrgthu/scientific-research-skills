@@ -33,6 +33,7 @@
        │    • 宏观叙事结构（Schimel OCAR / 预示型 OCAR / 基金 ABDCE / Nature LDR / 沙漏对称 / Rebuttal 回复）
        │    • 读者预期句法力学（Gopen & Swan Topic -> 强动作动词 -> Stress 闭合 + SCFL 审校）
        └── scientific-figures:
+            • 逐图逐表五门论证检视协议（Doumont 一句话结论 + Alley Assertion-Evidence + Frankel & DePace 视觉推演链 + Cargill 图先行）
             • 视觉感知与标度铁律（Wilke 第 1–29 章 + Rougier 等《更佳科研图表十诫》）
             • Okabe–Ito 色觉安全配色、期刊精确栏宽预设与无竖线 Booktabs 三线表规范
 ```
@@ -125,8 +126,8 @@ uv run "$WF_CLI/compile_evidence_matrix.py" ./literature/extractions.json --out-
 ## 方法论致谢与开源协议
 
 本套件中的规则、工作流与代码均为 Clean-Room 原创工程实现，方法论体系致谢以下经典著作与开放学术基础设施：
-- **学术叙事与句法结构**：Joshua Schimel, *Writing Science* (2012)；Randy Olson, *Houston, We Have a Narrative: Why Science Needs Story* (2015)；George D. Gopen & Judith A. Swan, *"The Science of Scientific Writing"* (1990)。
-- **科研可视化与制表规范**：Claus O. Wilke, *Fundamentals of Data Visualization* (2019)；Nicolas P. Rougier, Michael Droettboom & Philip E. Bourne, *"Ten Simple Rules for Better Figures"* (*PLOS Computational Biology*, 2014, CC BY 4.0)；Okabe & Ito 色觉安全调色板。
+- **学术叙事与句法结构**：Joshua Schimel, *Writing Science* (2012)；Margaret Cargill & Patrick O'Connor, *Writing Scientific Research Articles* (3rd ed., 2021)；Randy Olson, *Houston, We Have a Narrative: Why Science Needs Story* (2015)；George D. Gopen & Judith A. Swan, *"The Science of Scientific Writing"* (1990)。
+- **图表论证检视、可视化与制表规范**：Jean-luc Doumont, *Trees, Maps, and Theorems* (2009)；Michael Alley, *The Craft of Scientific Writing* / *Presentations* (Assertion-Evidence)；Felice C. Frankel & Angela H. DePace, *Visual Strategies* (2012)；Claus O. Wilke, *Fundamentals of Data Visualization* (2019)；Nicolas P. Rougier et al., *"Ten Simple Rules for Better Figures"* (*PLOS Computational Biology*, 2014, CC BY 4.0)；Okabe & Ito 色觉安全调色板。
 - **开放学术数据源**：Semantic Scholar (AI2 / SPECTER2)、OpenAlex、Crossref (Retraction Watch) 与 arXiv（请遵守各平台 API 服务条款及所检索论文自身的版权许可）。
 
 本项目基于 [MIT License](./LICENSE) 开源发布。

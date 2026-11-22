@@ -47,9 +47,13 @@ POINTER_TOPIC_RE = re.compile(
 
 WEAK_CAPTION_START_RE = re.compile(
     r"^(?:This\s+figure\s+(?:shows|illustrates|depicts|presents)|"
-    r"(?:A\s+|The\s+)?(?:plot|graph|chart|bar\s+chart|scatter\s+plot|histogram|comparison|summary|relationship|results?|illustration)\s+(?:of|between|showing|comparing)\b)",
+    r"(?:A\s+|The\s+)?(?:plot|graph|chart|bar\s+chart|scatter\s+plot|histogram|comparison|summary|relationship|results?|illustration)\s+(?:of|between|showing|comparing)\b|"
+    r"(?:An?\s+|The\s+)?(?:ablation\s+(?:study|results?|analysis|experiments?)|experimental\s+(?:results?|evaluation|comparison|setup)|"
+    r"(?:performance|accuracy|perplexity|latency|throughput|evaluation)\s+(?:comparison|results?|evaluation|study|analysis))\s+(?:of|on|for|across|between)\b)",
     flags=re.IGNORECASE,
 )
+SECTION_HEADING_RE = re.compile(r"\\(?:section|subsection)\*?\{([^{}]+)\}")
+SUBPANEL_CAP_RE = re.compile(r"\(\s*([a-h])\s*\)")
 
 # Olson Narrative Spectrum (AAA / ABT / DHY) patterns for abstracts
 BARE_CONTRADICTION_S1_RE = re.compile(
@@ -207,8 +211,79 @@ def lint_abstract_narrative(clean_tex: str) -> dict[str, Any]:
     }
 
 
+def extract_first_sentence(text: str) -> str:
+    if not text:
+        return ""
+    protected = ABBREV_PROTECT_RE.sub(lambda am: am.group(0).replace(".", "<DOT>"), text)
+    protected = re.sub(r"(\d)\.(\d)", r"\1<DOT>\2", protected)
+    m = re.search(r"[.!?](?:\s+|$)", protected)
+    first = protected[: m.start() + 1] if m else protected
+    return first.replace("<DOT>", ".").strip()[:220]
+
+
+def extract_subpanels_from_caption(caption: str) -> list[str]:
+    found = sorted(set(ch.lower() for ch in SUBPANEL_CAP_RE.findall(caption)))
+    if "a" in found and "b" in found:
+        return found
+    return []
+
+
+def extract_cited_subpanels(prose_only: str, labels: list[str]) -> list[str]:
+    cited: set[str] = set()
+    for lb in labels:
+        esc = re.escape(lb)
+        for m in re.finditer(
+            rf"\\(?:ref|cref|Cref|autoref|figureref)\*?\{{[^}}]*\b{esc}\b[^}}]*\}}\s*(?:\(\s*([a-h])\s*\)|([a-h])(?:\s*(?:--|-|,|\band\b)\s*([a-h]))?(?![a-zA-Z]))",
+            prose_only,
+        ):
+            p1 = m.group(1) or m.group(2)
+            p2 = m.group(3)
+            if p1:
+                cited.add(p1.lower())
+            if p1 and p2 and ord(p1.lower()) <= ord(p2.lower()):
+                for code in range(ord(p1.lower()), ord(p2.lower()) + 1):
+                    cited.add(chr(code))
+        # Also support \subref{fig:foo_a} or direct sub-label suffixes if defined
+    return sorted(cited)
+
+
+def extract_first_callout_sentence(prose_only: str, labels: list[str]) -> str:
+    protected = ABBREV_PROTECT_RE.sub(lambda am: am.group(0).replace(".", "<DOT>"), prose_only)
+    protected = re.sub(r"(\d)\.(\d)", r"\1<DOT>\2", protected)
+    best_pos: int | None = None
+    for lb in labels:
+        esc = re.escape(lb)
+        m = re.search(rf"\\(?:ref|cref|Cref|autoref|figureref|tableref)\*?\{{[^}}]*\b{esc}\b[^}}]*\}}", protected)
+        if m and (best_pos is None or m.start() < best_pos):
+            best_pos = m.start()
+    if best_pos is None:
+        return ""
+    left = max(
+        protected.rfind(".", 0, best_pos),
+        protected.rfind("!", 0, best_pos),
+        protected.rfind("?", 0, best_pos),
+        protected.rfind("\n\n", 0, best_pos),
+    )
+    right_candidates = [idx for idx in (protected.find(".", best_pos), protected.find("!", best_pos), protected.find("?", best_pos)) if idx != -1]
+    right = min(right_candidates) + 1 if right_candidates else min(len(protected), best_pos + 180)
+    raw_sent = protected[(left + 1 if left != -1 else 0) : right].replace("<DOT>", ".")
+    raw_sent = re.sub(r"\\(?:section|subsection|subsubsection|paragraph)\*?\{[^}]*\}", " ", raw_sent)
+    return re.sub(r"\s+", " ", raw_sent).strip()[:240]
+
+
 def lint_tex_source(tex_text: str, check_abstract: bool = True) -> dict[str, Any]:
     clean_tex = strip_comments(tex_text)
+
+    sections_index = [(sm.start(), re.sub(r"\s+", " ", sm.group(1)).strip()) for sm in SECTION_HEADING_RE.finditer(clean_tex)]
+
+    def _nearest_section(pos: int) -> str:
+        sec = "(preamble/root)"
+        for spos, stitle in sections_index:
+            if spos <= pos:
+                sec = stitle
+            else:
+                break
+        return sec
 
     declared_figures: list[dict[str, Any]] = []
     declared_tables: list[dict[str, Any]] = []
@@ -226,6 +301,8 @@ def lint_tex_source(tex_text: str, check_abstract: bool = True) -> dict[str, Any
             "kind": env_type,
             "label": primary_label,
             "all_labels": labels,
+            "section": _nearest_section(m.start()),
+            "caption_full": caption,
             "caption_preview": caption[:200],
         }
         for lb in labels:
@@ -240,12 +317,15 @@ def lint_tex_source(tex_text: str, check_abstract: bool = True) -> dict[str, Any
 
     first_seen_order: list[str] = []
     seen_refs: set[str] = set()
+    ref_counts: dict[str, int] = {}
     for rm in REF_RE.finditer(prose_only):
         for raw_k in rm.group(1).split(","):
             k = raw_k.strip()
-            if k and k not in seen_refs:
-                seen_refs.add(k)
-                first_seen_order.append(k)
+            if k:
+                ref_counts[k] = ref_counts.get(k, 0) + 1
+                if k not in seen_refs:
+                    seen_refs.add(k)
+                    first_seen_order.append(k)
 
     # 1. Orphan visuals (never cited in prose)
     orphan_visuals: list[dict[str, str]] = []
@@ -306,6 +386,30 @@ def lint_tex_source(tex_text: str, check_abstract: bool = True) -> dict[str, Any
     abstract_info = lint_abstract_narrative(clean_tex) if check_abstract else {"present": False, "sentence_count": 0, "warnings": []}
     abstract_warnings = abstract_info["warnings"]
 
+    # 7. Structured Visual Inventory Scaffold (for 5-Gate Assertion-Evidence Auditing)
+    visual_inventory: list[dict[str, Any]] = []
+    for kind_name, decl_list in (("figure", declared_figures), ("table", declared_tables)):
+        for idx, item in enumerate(decl_list, start=1):
+            total_cites = sum(ref_counts.get(lb, 0) for lb in item["all_labels"])
+            sub_decl = extract_subpanels_from_caption(item["caption_full"]) if kind_name == "figure" else []
+            sub_cited = extract_cited_subpanels(prose_only, item["all_labels"]) if sub_decl else []
+            uncited_sub = [sp for sp in sub_decl if sp not in sub_cited] if sub_decl else []
+            visual_inventory.append(
+                {
+                    "id": f"{'Figure' if kind_name == 'figure' else 'Table'} {idx}",
+                    "kind": kind_name,
+                    "number": idx,
+                    "label": item["label"],
+                    "section": item["section"],
+                    "callout_count": total_cites,
+                    "first_callout_sentence": extract_first_callout_sentence(prose_only, item["all_labels"]),
+                    "caption_first_sentence": extract_first_sentence(item["caption_full"]),
+                    "subpanels_declared": sub_decl,
+                    "subpanels_explicitly_cited": sub_cited,
+                    "uncited_subpanels_hint": uncited_sub,
+                }
+            )
+
     return {
         "counts": {
             "declared_figures": len(declared_figures),
@@ -325,6 +429,7 @@ def lint_tex_source(tex_text: str, check_abstract: bool = True) -> dict[str, Any
             or weak_captions
             or abstract_warnings
         ),
+        "visual_inventory": visual_inventory,
         "orphan_visuals": orphan_visuals,
         "out_of_order_callouts": out_of_order,
         "undefined_visual_refs": undefined_visual_refs,
