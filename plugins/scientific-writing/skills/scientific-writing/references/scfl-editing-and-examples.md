@@ -73,7 +73,8 @@ Execute iterative passes from macro to micro (**`S → C → F → L`**), then l
 - [ ] **Vocabulary & Noun Trains**: Crisp Anglo-Saxon words replace heavy Latinate filler; technical terms sit in the `3`-position when reminding mixed audiences; acronyms are spelled out on first use; 3–4+ word **noun trains** are broken up.
 - [ ] **Delete-Key Condensing & `"But, Yes"`**: Redundancies, obvious statements, empty amplifiers (*very, dramatically, highly*), and metadiscourse (*"In this study, we found..."*) are pruned; limitations use early **`"But, yes"`**, and the Resolution has zero `"more research is needed"`.
 
-### Pass 5: Cycle Back to `S` + Read Out Loud
+### Pass 5: Cycle Back to `S`, Cross-Artifact Consistency Lock & Read Out Loud
+- [ ] **5-Matrix Cross-Artifact Consistency Audit** ([cross-artifact-consistency-audit.md](./cross-artifact-consistency-audit.md)): Verify **(1)** Abstract/Intro/Results/Conclusions share identical numbers & `pp` vs. `%` arithmetic, **(2)** Main & Appendix tables agree to the last decimal digit on every shared `(Protocol, Dataset, Subset, Baseline)` cell (zero silent macro-vs-micro aggregation drift; distinct ranks/masks explicitly badged `Protocol P1` vs. `P2`), and **(3)** Figure panels, captions, and stratified tables have **zero directional/sign inversions** (never projecting pooled `A > B` onto subgroups where `A < B`).
 - [ ] Check whether scaffolding conjunctions (`and / but / therefore`) or an opening Pawn-push sentence can now be streamlined, and read out loud by ear to verify rhythm and effortless comprehension.
 
 ---
@@ -130,16 +131,17 @@ Execute iterative passes from macro to micro (**`S → C → F → L`**), then l
 
 ---
 
-## 4. 10-Dimension Manuscript, Narrative & Visual Symbiosis Scorecard
+## 4. 11-Dimension Manuscript, Narrative, Visual & Consistency Scorecard
 
-When critiquing or auditing any research manuscript, proposal, or talk, evaluate across these 10 dimensions:
+When critiquing or auditing any research manuscript, proposal, or talk, evaluate across these 11 dimensions:
 1. **Patchwork Integrity Check**: Is the work a unified organism, or does it exhibit post-experiment bolt-ons, sunk-cost clutter, and `Opening ≠ Resolution` drift requiring Tier-3 holistic reconstruction?
 2. **Singular Theme & Novelty (Dobzhansky + `Data → Understanding`)**: Can it pass the Dobzhansky Core-Theme Test and jargon-free `cABT` check, advancing *Knowledge/Understanding* rather than piling up `AAA` bricks?
 3. **Narrative Spectrum (`AAA ↔ ABT ↔ DHY`) & Honest `Agon`**: Do the Abstract, Opening, and nested section/slide arcs hit clean `ABT` balance without `AAA` boredom, `DHY` multi-turn confusion, or overstated false-positive `Archplot` hype (with null/boundary results reframed via Assumption-Refutation `ABT`)?
 4. **Macro Structure & Hourglass Symmetry**: Does structure (`OCAR` / Telegraphed `OCAR` / `ABDCE` / `LDR` / `Arouse & Fulfill`) match audience patience, with `Opening` width matching `Resolution` width?
 5. **Opening, Funnel, & Challenge**: Concrete Knowledge Gap (no `"little is known"`, Bizzwidget pitch, or `"Smith found X"` wall) leading to `"To learn X, we did Y"`?
 6. **5-Gate Assertion-Evidence Visual Audit & Prose ⇄ Visual Symbiosis**: Does every figure, sub-panel, and table pass Necessity (breaks story if cut; right medium; zero duplicate table+plot), state a **1-sentence verb-driven Assertion** (Doumont/Alley), occupy a unique `OCAR`/`ABT` slot, provide an unbroken visual inference bridge (Frankel & DePace), get cited **100% in sequential order** (`(Fig. 2b)` at closure, zero `"Figure 2 shows..."` Topic waste), avoid prose table-echoing and symbol drift, and lead with effect sizes/$R^2$ over bare $p$-values?
-7. **Left-to-Right Visual & Tabular Design**: Familiar context/baselines on the left, discoveries on the right, clean Booktabs rules?
-8. **Reader-Expectation Sentence Mechanics**: Immediate Subject–Verb resolution, `Old` + story character in Topic, `New` emphasis at syntactic closure (Stress), and Stress candidates $\le$ Stress positions?
-9. **Hidden Logical Gaps & Verb Energy**: Do `Topic → Stress` chains and the Verb-List Audit reveal any unstated mechanistic leaps or static/nominalized verbs?
-10. **`"But, Yes"` Limitations & Resolution**: Caveats handled early and honestly, closing the spiral strongly with zero `"more research is needed"`?
+7. **Cross-Artifact Numeric, Protocol & Directional Consistency**: Do Abstract, Main Text, Main Tables, Appendix Tables, and Figures/Captions agree to the last decimal digit on every shared `(Protocol, Dataset, Subset, Baseline, Metric)` cell (zero silent macro-vs-micro aggregation drift, explicit `Protocol P1/P2` badging for modified ranks/masks, exact `pp` vs. `%` arithmetic, and zero pooled-vs-stratified directional sign inversions)?
+8. **Left-to-Right Visual & Tabular Design**: Familiar context/baselines on the left, discoveries on the right, clean Booktabs rules?
+9. **Reader-Expectation Sentence Mechanics**: Immediate Subject–Verb resolution, `Old` + story character in Topic, `New` emphasis at syntactic closure (Stress), and Stress candidates $\le$ Stress positions?
+10. **Hidden Logical Gaps & Verb Energy**: Do `Topic → Stress` chains and the Verb-List Audit reveal any unstated mechanistic leaps or static/nominalized verbs?
+11. **`"But, Yes"` Limitations & Resolution**: Caveats handled early and honestly, closing the spiral strongly with zero `"more research is needed"`?

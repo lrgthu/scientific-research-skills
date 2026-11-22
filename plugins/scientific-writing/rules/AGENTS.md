@@ -26,7 +26,7 @@
    - **Minor Fix (In-Place Allowed)**: *Only* typos, grammar, `\cite`/`\ref` fixes, or pure numeric sync where *zero* claims, rankings, mechanisms, or arcs change.
    - **Bounded Module Addition (Section-Level Arc Rewrite)**: New experiment purely reinforces an existing claim without shifting `Opening`, `Challenge`, or `Resolution` → audit whole-paper consistency and **rewrite the target subsection/section as a nested `ABT` arc** (never append `"Moreover / It is worth noting..."` bolt-on paragraphs).
    - **Thesis/Mechanism/Boundary Shift OR Patchwork Debt (Full-Paper Retrospective & Holistic Rewrite — Default Principle)**:
-     1. **Lock Hard Assets**: Freeze all verified numbers/stats, equations/notation, `\cite{}` keys, and `\label{}`/`\ref{}` anchors (zero factual regression).
+     1. **Lock Hard Assets & Protocol Identities**: Freeze all verified numbers/stats, exact aggregation formulas, protocol IDs (`P1`, `P2`), equations/notation, `\cite{}` keys, and `\label{}`/`\ref{}` anchors (zero factual or cross-table regression).
      2. **Re-Distill Bottom-Up & Audit Visuals First**: Pool *old + new* results without chronological bias; pass the **Dobzhansky Core-Theme Test** (`"Nothing in [system] makes sense except in the light of [mechanism]"`) and distill **one singular Master `kABT`**; run the **5-Gate Assertion-Evidence Audit** on every old and new figure/sub-panel/table (inlining trivial numbers, merging duplicates, and demoting superseded visuals to Appendix—*"murder your darlings"*); recalibrate `OCAR` and Hourglass width (`Opening == Resolution`).
      3. **Rewrite Top-Down**: Reconstruct prose seamlessly from `Opening → Funnel → Challenge → Action → Resolution` with unbroken serial arcs and continuous `Stress → Topic` flow.
 
@@ -77,3 +77,19 @@
 4. **100% Callout Coverage, Strict Sequential Order & Terminology Lock**:
    - **Every** figure, table, and sub-panel (`Fig. 2a–c`) **must** be cited in prose **in exact sequential order** (`Fig. 1 → Fig. 2 → Fig. 3`, `Table 1 → Table 2`; re-index immediately after any Anti-Patchwork rewrite; run `lint_manuscript_visuals.py` on `.tex` drafts to extract `visual_inventory` and verify callouts, captions, and Abstract `AAA/ABT/DHY` balance).
    - **Zero Terminology / Symbol Drift**: Method names, acronyms, math symbols ($\beta$, $\lambda$), units, and category order/colors must match **100% identically** across prose, equations, axis labels, legends, captions, and table headers (ban leaked code/run names like `Ours-v2` when prose says `SGA`).
+
+---
+
+## 6. Cross-Artifact Numeric, Protocol & Directional Consistency Rules (跨正文—跨图—跨表数字与协议一致性铁律)
+
+Inconsistency across text, figures, main tables, and appendix tables is an immediate peer-review killer—especially in benchmark, ablation, or small-effect / null-result ($10^{-3}$-scale) papers:
+
+1. **Explicit Protocol Identity Binding (`P1`, `P2`, ... — Zero Homonymous Drift)**:
+   - Every quantitative result must bind to an explicit **8-Tuple Identity**: **(1) Dataset & Target**, **(2) Sample / Unit / ROI Mask**, **(3) Feature Version & Rank/Dim ($d, r$)**, **(4) Split & Pairing Scope**, **(5) Exact Aggregation Formula** (strictly distinguishing **equal-weighted unit macro-mean** $\frac{1}{S}\sum_s M_s$ vs. **pooled micro-metric** $M(\bigcup_s \mathcal{D}_s)$!), **(6) Seeds / $n$**, **(7) Uncertainty Estimator**, and **(8) Canonical Source File**.
+   - **Never** print two numbers under the exact same unadorned baseline/dataset label across main and supplementary tables if they use different feature ranks, masks, splits, or aggregation operators! Badge distinct evaluation regimes explicitly (`Protocol P1` vs. `Protocol P2`) in headers/captions and state which columns/rows remain **strictly paired**.
+2. **Single-Source Generation & Programmatic Cross-Table Lock**:
+   - Generate main tables, appendix tables, figure panels, and LaTeX metric macros from **one shared canonical result reader** (never hand-copy numbers across `.tex` files or maintain divergent aggregation code across scripts), guarded by automated assertions (`max_abs_diff < 1e-6` on shared protocol cells).
+3. **Mandatory 5-Way Consistency Gate Before Delivery**:
+   - **Prose ⇄ Prose & Tables**: Abstract, Introduction preview, Results, Discussion, and Conclusions must match every table metric, $\Delta$ (distinguishing absolute **percentage points `pp`** from **relative `%`**), sample size $N$, seed count $n$, and hyperparameter identically.
+   - **Main Tables ⇄ Appendix Tables**: Shared `(Protocol, Dataset, Subset, Baseline, Metric)` cells must match to the **last printed decimal digit** (verified via `lint_manuscript_visuals.py` on flattened `main.tex + appendix.tex`).
+   - **Figures ⇄ Captions ⇄ Stratified Tables (Zero Directional Sign Inversion)**: Visually cross-check rendered figures (`read_file`) against companion tables, and verify **zero sign/ranking contradictions**—never generalize a **pooled-cohort** lead (`A > B`) into a caption or prose claim on a **stratified subgroup** where `A < B`!

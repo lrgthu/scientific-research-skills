@@ -29,7 +29,7 @@ Seed Papers / Fine-Grained Research Question
        │    • Conditional Literature Bridge (Calls back to [1] for Intro/Related Work, H1->H2 Pivots & .bib Verify)
        │    • Anti-Patchwork Holistic Reconstruction Protocol (Zero Factual/LaTeX Regression)
        │    • Narrative Spectrum (`AAA/ABT/DHY`), Dobzhansky Theme, `iABT->cABT->kABT`, Null-Result Reframing & Talks
-       │    • Prose <-> Visual Symbiosis Laws & LaTeX Callout/Caption/Abstract Linter (`lint_manuscript_visuals.py`)
+       │    • Cross-Artifact Numeric/Protocol Consistency (`P1/P2` Lock) & LaTeX Linter (`lint_manuscript_visuals.py`)
        │    • Macro Storytelling (Schimel OCAR / Telegraphed OCAR / ABDCE / LDR / Hourglass / Rebuttals)
        │    • Reader-Expectation Mechanics (Gopen & Swan Topic -> Action Verb -> Stress + SCFL)
        └── scientific-figures:
@@ -76,7 +76,8 @@ scientific-research-skills/
         └── skills/
             ├── scientific-writing/
             │   ├── SKILL.md
-            │   └── references/{macro-structure-and-sections.md, micro-style-flow-and-condensing.md, scfl-editing-and-examples.md}
+            │   ├── scripts/lint_manuscript_visuals.py
+            │   └── references/{macro-structure-and-sections.md, micro-style-flow-and-condensing.md, scfl-editing-and-examples.md, cross-artifact-consistency-audit.md}
             └── scientific-figures/
                 ├── SKILL.md
                 ├── references/{figure-table-assertion-evidence-audit.md, chart-directory-and-encodings.md, design-principles-tables-and-storytelling.md}

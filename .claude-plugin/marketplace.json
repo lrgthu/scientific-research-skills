@@ -5,8 +5,8 @@
     "url": "https://github.com/lrgthu"
   },
   "metadata": {
-    "description": "End-to-end open-stack scientific research skills: citation graph lineage, stance/retraction auditing, LaTeX/full-text evidence matrices, anti-patchwork scholarly writing & ABT narrative architecture, and 5-gate assertion-evidence figure/table auditing & visualization.",
-    "version": "1.3.0"
+    "description": "End-to-end open-stack scientific research skills: citation graph lineage, stance/retraction auditing, LaTeX/full-text evidence matrices, anti-patchwork scholarly writing, cross-table/protocol numeric consistency auditing, and 5-gate assertion-evidence figure/table engineering.",
+    "version": "1.4.0"
   },
   "plugins": [
     {
@@ -19,8 +19,8 @@
     {
       "name": "scientific-writing",
       "source": "./plugins/scientific-writing",
-      "description": "Scholarly writing, scientific storytelling & publication figure suite: Anti-Patchwork Holistic Reconstruction, Olson ABT/Narrative Spectrum, 5-Gate Assertion-Evidence Figure/Table Audit (Doumont, Alley, Frankel & DePace, Cargill), Schimel OCAR, Gopen & Swan mechanics, and Wilke + Rougier figure & Booktabs engineering.",
-      "version": "1.6.0",
+      "description": "Scholarly writing, scientific storytelling & publication figure suite: Anti-Patchwork Holistic Reconstruction, Cross-Artifact Numeric/Protocol Consistency Audit, Olson ABT/Narrative Spectrum, 5-Gate Assertion-Evidence Figure/Table Audit (Doumont, Alley, Frankel & DePace, Cargill), Schimel OCAR, Gopen & Swan mechanics, and Wilke + Rougier figure & Booktabs engineering.",
+      "version": "1.7.0",
       "license": "MIT"
     }
   ]

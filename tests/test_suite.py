@@ -348,6 +348,113 @@ class TestProseVisualSymbiosisLinter(unittest.TestCase):
         self.assertEqual(inv_by_label["fig:mech"]["uncited_subpanels_hint"], ["c"])
         self.assertIn("Rank-16 sketches recover", inv_by_label["fig:mech"]["first_callout_sentence"])
 
+    def test_cross_table_silent_drift_flagged_and_protocol_badges_allowed(self) -> None:
+        tex = r"""
+        \section{Results}
+        Main benchmark scores appear in Table~\ref{tab:main}, supplementary breakdowns in Table~\ref{tab:supp_drift} and Table~\ref{tab:supp_p2},
+        and single-cohort checks in Table~\ref{tab:cohort_x} and Table~\ref{tab:cohort_y}.
+
+        \begin{table}[t]
+          \caption{Cross-cohort outer-fold $R^2$ under full-rank inputs.}
+          \label{tab:main}
+          \begin{tabular}{lrr}
+            \toprule
+            Method & Bench-Alpha & Bench-Beta V4 \\
+            \midrule
+            Div. Norm. & \textbf{0.2106} & 0.2911 \\
+            Spectral Gate & 0.2240 & 0.3055 \\
+            \bottomrule
+          \end{tabular}
+        \end{table}
+
+        \begin{table}[t]
+          \caption{Supplementary multirow table with silent pooled-vs-macro drift on Bench-Alpha and valid 2-digit rounding on Bench-Beta V4.}
+          \label{tab:supp_drift}
+          \begin{tabular}{llrr}
+            \toprule
+            Cohort & Method & Test $R^2$ & Latency (ms) \\
+            \midrule
+            \multirow{2}{*}{Bench-Alpha} & Div. Norm. & 0.2071 & 12.4 \\
+             & Spectral Gate & 0.2240 & 14.1 \\
+            Bench-Beta V4 & Div. Norm. & 0.29 & 18.2 \\
+            \bottomrule
+          \end{tabular}
+        \end{table}
+
+        \begin{table}[t]
+          \caption{Dimension-matched SVD ablation (Protocol P2: rank-96 native SVD).}
+          \label{tab:supp_p2}
+          \begin{tabular}{lrr}
+            \toprule
+            Method & Bench-Alpha & Bench-Beta V4 \\
+            \midrule
+            Div. Norm. & 0.1995 & 0.2724 \\
+            \bottomrule
+          \end{tabular}
+        \end{table}
+
+        \begin{table}[t]
+          \caption{Accuracy on Cohort-X.}
+          \label{tab:cohort_x}
+          \begin{tabular}{lr}
+            \toprule
+            Method & Accuracy \\
+            \midrule
+            Spectral Gate & 84.2 \\
+            \bottomrule
+          \end{tabular}
+        \end{table}
+
+        \begin{table}[t]
+          \caption{Accuracy on Cohort-Y.}
+          \label{tab:cohort_y}
+          \begin{tabular}{lr}
+            \toprule
+            Method & Accuracy \\
+            \midrule
+            Spectral Gate & 71.9 \\
+            \bottomrule
+          \end{tabular}
+        \end{table}
+        """
+        rep = lmv.lint_tex_source(tex)
+        self.assertFalse(rep["clean"])
+        # Exactly 1 conflict: Bench-Alpha + Div. Norm. (0.2106 vs 0.2071); Protocol P2, 0.29 rounding, and Cohort-X/Y do NOT false-flag!
+        self.assertEqual(len(rep["cross_table_conflicts"]), 1, msg=json.dumps(rep["cross_table_conflicts"], indent=2))
+        conflict = rep["cross_table_conflicts"][0]
+        self.assertEqual(conflict["table_a"], "tab:main")
+        self.assertEqual(conflict["table_b"], "tab:supp_drift")
+        self.assertAlmostEqual(conflict["abs_diff"], 0.0035, places=6)
+
+    def test_abstract_body_stale_metric_flagged_and_derived_delta_allowed(self) -> None:
+        tex = r"""
+        \begin{abstract}
+        Long-context retrieval models rely on cached keys.
+        However, uniform eviction degrades multi-hop accuracy at 128k tokens.
+        To preserve dormant cues, we introduce Spectral Gate, reaching 91.5\% accuracy (+3.2 percentage points over eviction) and 0.2189 mean $R^2$.
+        \end{abstract}
+
+        \section{Experiments}
+        Spectral Gate improved accuracy over eviction across benchmarks (Table~\ref{tab:res}).
+
+        \begin{table}[t]
+          \caption{Retrieval accuracy and $R^2$ across models.}
+          \label{tab:res}
+          \begin{tabular}{lrr}
+            \toprule
+            Method & Retrieval Acc. & Test $R^2$ \\
+            \midrule
+            Eviction & 88.3 & 0.1950 \\
+            Spectral Gate & 91.5 & 0.2106 \\
+            \bottomrule
+          \end{tabular}
+        \end{table}
+        """
+        rep = lmv.lint_tex_source(tex)
+        self.assertFalse(rep["clean"])
+        # 91.5 matches directly, 3.2 matches 91.5 - 88.3, while stale 0.2189 is flagged!
+        self.assertEqual([u["number"] for u in rep["abstract_unmatched_numbers"]], ["0.2189"])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

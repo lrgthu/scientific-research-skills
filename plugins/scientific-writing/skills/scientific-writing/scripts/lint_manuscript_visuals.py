@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-r"""Deterministic LaTeX Prose <-> Visual Symbiosis & Abstract Narrative Spectrum Linter.
+r"""Deterministic LaTeX Prose <-> Visual Symbiosis, Abstract Narrative & Cross-Artifact Consistency Linter.
 
-Audits LaTeX manuscripts (flattening `\input{}` / `\include{}` in reading order) for:
+Audits LaTeX manuscripts (flattening `\input{}` / `\include{}` across main text + appendix in reading order) for:
 1. Orphan Visuals: Figures or tables never cited in prose (`\label{fig:...}` / `\label{tab:...}` with zero `\ref`/`\cref`).
 2. Out-of-Order Callouts: Figures or tables cited out of sequence relative to their appearance order (e.g., citing Fig. 3 before Fig. 2).
 3. Undefined Visual References: Prose `\ref{fig:...}` / `\cref{tab:...}` pointing to non-existent labels.
 4. Pointer-Topic Sentences: Sentences wasting the Topic position on `"Figure \ref{...} shows"` / `"Table \ref{...} summarizes"` instead of leading with the scientific finding.
-5. Descriptive vs. Declarative Figure Captions: Empirical figure captions starting with weak catalog phrases (`"Relationship between..."`, `"Plot of..."`, `"This figure shows..."`) instead of a takeaway claim.
-6. Abstract Narrative Spectrum (`AAA` / `DHY` — Randy Olson): Flags abstracts that (a) open Sentence 1 with a bare contradiction (`However, ...`) before context, (b) jump straight into uncontextualized action (`We measured ...` / Bizzwidget pitch) in Sentence 1, (c) fire `>=3` consecutive or `>=4` sentence-initial contradiction turns (`Despite... However... Yet...` DHY zig-zag), or (d) list `>=4` sentences with zero contradiction/problem/gap pivot (`AAA` fact dump).
+5. Descriptive vs. Declarative Figure Captions: Empirical figure captions starting with weak catalog/topic phrases (`"Relationship between..."`, `"Ablation study on..."`) instead of a takeaway claim.
+6. Abstract Narrative Spectrum (`AAA` / `DHY` — Randy Olson): Flags bare Sentence-1 contradictions, zero-context `"We measured..."` openers, `DHY` contradiction zig-zags, and zero-conflict `AAA` abstracts.
+7. Cross-Artifact Numeric & Protocol Consistency: Parses all LaTeX tables (`tabular`/`tabularx`/`\multicolumn`/`\multirow`) across main text and appendix to detect shared `(Dataset/Condition, Method, Metric)` cells that disagree beyond rounding without explicit `Protocol P1/P2` disambiguation, plus stale decimal metrics in the Abstract unmatched anywhere in the body/tables.
 """
 
 # /// script
@@ -79,6 +80,40 @@ ANY_CONTRADICTION_OR_GAP_RE = re.compile(
 ABBREV_PROTECT_RE = re.compile(
     r"\b(?:e\.g|i\.e|et\s+al|Fig|Figs|Tab|Tabs|Sec|Secs|Eq|Eqs|vs|cf|approx|Dr|Prof)\.",
     flags=re.IGNORECASE,
+)
+
+TABULAR_ENV_RE = re.compile(
+    r"\\begin\{(tabular\*?|tabularx|tabulary)\}(.*?)\\end\{\1\}",
+    flags=re.DOTALL,
+)
+PROTO_TAG_RE = re.compile(
+    r"(?:\bProtocol\s+([A-Za-z0-9_-]+)|\b(P[1-9](?:-[A-Za-z0-9]+)?)\b)",
+    flags=re.IGNORECASE,
+)
+METRIC_CELL_RE = re.compile(
+    r"^\s*([+-]?\d+\.\d+)\s*(?:%|\\?%)?\s*(?:(?:\+-|\\pm|±)\s*[+-]?\d+(?:\.\d+)?\s*(?:%|\\?%)?|\(\s*[+-]?\d+(?:\.\d+)?\s*\))?\s*$"
+)
+GENERIC_ROLE_HEADERS = {
+    "method", "methods", "model", "models", "baseline", "baselines", "approach", "approaches",
+    "dataset", "datasets", "benchmark", "benchmarks", "cohort", "cohorts", "region", "regions",
+    "task", "tasks", "setting", "settings", "condition", "conditions", "subset", "variant", "system",
+}
+SKIP_INDEX_HEADERS = {"rank", "#", "id", "idx", "index", "no", "row"}
+METRIC_KEYWORDS = (
+    ("r2", ("r 2", "r2", "rsq")),
+    ("accuracy", ("acc", "accuracy", "top 1", "top 5")),
+    ("perplexity", ("ppl", "perplexity")),
+    ("latency", ("latency", "runtime", "wall clock", "ms token", "time")),
+    ("throughput", ("throughput", "tok s", "tokens s", "samples s")),
+    ("memory", ("memory", "vram", "hbm", "kv size", "footprint")),
+    ("f1", ("f1", "f 1")),
+    ("auc", ("auc", "auroc", "auprc")),
+    ("recall", ("recall", "passkey")),
+    ("precision", ("precision",)),
+    ("loss", ("loss", "nll", "bpb")),
+    ("rmse", ("rmse", "mse")),
+    ("mae", ("mae",)),
+    ("corr", ("pearson", "spearman", "corr")),
 )
 
 
@@ -271,7 +306,434 @@ def extract_first_callout_sentence(prose_only: str, labels: list[str]) -> str:
     return re.sub(r"\s+", " ", raw_sent).strip()[:240]
 
 
-def lint_tex_source(tex_text: str, check_abstract: bool = True) -> dict[str, Any]:
+def _strip_leading_tabular_args(env_name: str, raw_body: str) -> str:
+    i = 0
+    n = len(raw_body)
+    n_brace_args = 2 if env_name in {"tabular*", "tabularx", "tabulary"} else 1
+    consumed = 0
+    while i < n and consumed < n_brace_args:
+        while i < n and raw_body[i].isspace():
+            i += 1
+        if i < n and raw_body[i] == "[":
+            depth_b = 1
+            i += 1
+            while i < n and depth_b > 0:
+                if raw_body[i] == "[":
+                    depth_b += 1
+                elif raw_body[i] == "]":
+                    depth_b -= 1
+                i += 1
+            continue
+        if i < n and raw_body[i] == "{":
+            depth = 1
+            i += 1
+            while i < n and depth > 0:
+                if raw_body[i] == "\\" and i + 1 < n:
+                    i += 2
+                    continue
+                if raw_body[i] == "{":
+                    depth += 1
+                elif raw_body[i] == "}":
+                    depth -= 1
+                i += 1
+            consumed += 1
+        else:
+            break
+    return raw_body[i:]
+
+
+def _clean_latex_cell(cell: str) -> str:
+    s = re.sub(r"(\d)\{,\}(\d)", r"\1\2", cell)
+    s = s.replace("$-$", "-").replace("$+$", "+").replace("--", "-").replace(r"\ ", " ")
+    for _ in range(3):
+        s_next = re.sub(
+            r"\\(?:textbf|mathbf|textit|mathit|textrm|mathrm|texttt|emph|underline)\{([^{}]*)\}",
+            r"\1",
+            s,
+        )
+        if s_next == s:
+            break
+        s = s_next
+    s = re.sub(r"\\(?:cellcolor|rowcolor|cite\w*|ref|cref|Cref|label)(?:\[[^\]]*\])*\{[^}]*\}", " ", s)
+    s = re.sub(r"\\(?:dag|ddag|ast|star|uparrow|downarrow)\b", " ", s)
+    s = s.replace("$", " ").replace(r"\,", " ").replace(r"\;", " ").replace(r"\!", "").replace("~", " ")
+    return re.sub(r"\s+", " ", s).strip()
+
+
+def _extract_proto_tag(text: str) -> str:
+    tags = sorted(
+        {
+            (m.group(1) or m.group(2)).lower()
+            for m in PROTO_TAG_RE.finditer(text)
+            if (m.group(1) or m.group(2))
+        }
+    )
+    return "+".join(tags) if tags else "canonical"
+
+
+def _norm_descriptor(text: str) -> str:
+    # Strip protocol annotations and benign sample-count tags `(N=8)` from entity labels
+    t = PROTO_TAG_RE.sub(" ", text)
+    t = re.sub(r"\(\s*[Nn]\s*=\s*\d+\s*\)", " ", t)
+    t = re.sub(r"\\[a-zA-Z]+\*?", " ", t)
+    t = re.sub(r"[^a-zA-Z0-9]+", " ", t).lower().strip()
+    return re.sub(r"\s+", " ", t)
+
+
+def _classify_metric_hint(norm_txt: str) -> str:
+    padded = f" {norm_txt} "
+    for canonical, aliases in METRIC_KEYWORDS:
+        if any(f" {al} " in padded for al in aliases):
+            return canonical
+    return ""
+
+
+def _split_tabular_rows(chunk: str) -> list[list[str]]:
+    cleaned = re.sub(
+        r"\\(?:toprule|bottomrule|cmidrule(?:\([^)]*\))?\{[^}]*\}|cline\{[^}]*\}|addlinespace(?:\[[^\]]*\])?)",
+        " ",
+        chunk,
+    )
+    cleaned = re.sub(r"\\(?:midrule|hline)\b", " ", cleaned)
+    raw_rows = re.split(r"\\\\(?:\s*\[[^\]]*\])?", cleaned)
+    rows: list[list[str]] = []
+    for rr in raw_rows:
+        if not rr.strip():
+            continue
+        cells = [c.strip() for c in re.split(r"(?<!\\)&", rr)]
+        if any(c for c in cells):
+            rows.append(cells)
+    return rows
+
+
+def _expand_header_row(cells: list[str]) -> list[str]:
+    expanded: list[str] = []
+    for c in cells:
+        mc = re.search(r"\\multicolumn\{(\d+)\}\{[^}]*\}\{(.*)\}\s*$", c, flags=re.DOTALL)
+        if mc:
+            span = max(1, int(mc.group(1)))
+            inner = _clean_latex_cell(mc.group(2))
+            expanded.extend([inner] * span)
+        else:
+            expanded.append(_clean_latex_cell(c))
+    return expanded
+
+
+def _row_has_decimal_metric(row_cells: list[str]) -> bool:
+    for rc in row_cells:
+        if METRIC_CELL_RE.match(_clean_latex_cell(rc)):
+            return True
+    return False
+
+
+def extract_table_metric_cells(table_rec: dict[str, Any]) -> list[dict[str, Any]]:
+    body = table_rec.get("raw_body", "")
+    caption = table_rec.get("caption_full", "")
+    table_proto = _extract_proto_tag(caption)
+    table_caption_metric = _classify_metric_hint(_norm_descriptor(_clean_latex_cell(caption)))
+    out_cells: list[dict[str, Any]] = []
+
+    for tm in TABULAR_ENV_RE.finditer(body):
+        env_name = tm.group(1)
+        tab_content = _strip_leading_tabular_args(env_name, tm.group(2))
+        segments = re.split(r"\\(?:midrule|hline)\b", tab_content)
+
+        active_col_headers: list[list[str]] = []
+        pending_header_rows: list[list[str]] = []
+        block_proto = "canonical"
+        block_metric = ""
+
+        for seg_idx, seg in enumerate(segments):
+            seg_rows = _split_tabular_rows(seg)
+            if not seg_rows:
+                continue
+
+            # When a table has no \midrule/\hline at all, row 0 is header and rows 1: are data
+            if len(segments) == 1 and seg_idx == 0 and len(seg_rows) >= 2 and not _row_has_decimal_metric(seg_rows[0]):
+                pending_header_rows.append(_expand_header_row(seg_rows[0]))
+                seg_rows = seg_rows[1:]
+
+            if not any(_row_has_decimal_metric(r) for r in seg_rows):
+                for r in seg_rows:
+                    if len(r) == 1 and r[0].lstrip().startswith(r"\multicolumn"):
+                        mc = re.search(r"\\multicolumn\{\d+\}\{[^}]*\}\{(.*)\}\s*$", r[0], flags=re.DOTALL)
+                        banner_txt = _clean_latex_cell(mc.group(1) if mc else r[0])
+                        block_proto = _extract_proto_tag(banner_txt)
+                        block_metric = _classify_metric_hint(_norm_descriptor(banner_txt))
+                        pending_header_rows = []
+                    else:
+                        pending_header_rows.append(_expand_header_row(r))
+                continue
+
+            if pending_header_rows:
+                max_h_cols = max(len(hr) for hr in pending_header_rows)
+                active_col_headers = [[] for _ in range(max_h_cols)]
+                for hr in pending_header_rows:
+                    for c_idx, htxt in enumerate(hr):
+                        if htxt and (not active_col_headers[c_idx] or active_col_headers[c_idx][-1] != htxt):
+                            active_col_headers[c_idx].append(htxt)
+                pending_header_rows = []
+
+            max_cols = max([len(active_col_headers), *(len(r) for r in seg_rows)] or [0])
+            while len(active_col_headers) < max_cols:
+                active_col_headers.append([])
+
+            leaf_counts: dict[str, int] = {}
+            for ch_stack in active_col_headers:
+                if ch_stack:
+                    ln = _norm_descriptor(ch_stack[-1])
+                    if ln:
+                        leaf_counts[ln] = leaf_counts.get(ln, 0) + 1
+
+            multirow_carry: dict[int, list[Any]] = {}
+            for drow in seg_rows:
+                if not _row_has_decimal_metric(drow):
+                    if len(drow) == 1 and drow[0].lstrip().startswith(r"\multicolumn"):
+                        mc = re.search(r"\\multicolumn\{\d+\}\{[^}]*\}\{(.*)\}\s*$", drow[0], flags=re.DOTALL)
+                        banner_txt = _clean_latex_cell(mc.group(1) if mc else drow[0])
+                        block_proto = _extract_proto_tag(banner_txt)
+                    continue
+
+                expanded_drow: list[str] = []
+                for raw_c in drow:
+                    mc = re.search(r"\\multicolumn\{(\d+)\}\{[^}]*\}\{(.*)\}\s*$", raw_c, flags=re.DOTALL)
+                    if mc:
+                        span = max(1, int(mc.group(1)))
+                        expanded_drow.extend([mc.group(2)] * span)
+                    else:
+                        expanded_drow.append(raw_c)
+
+                cleaned_row: list[str] = []
+                for c_idx in range(max(len(expanded_drow), max_cols)):
+                    raw_val = expanded_drow[c_idx] if c_idx < len(expanded_drow) else ""
+                    mr = re.search(r"\\multirow\{(\d+)\}\{[^}]*\}\{(.*)\}\s*$", raw_val, flags=re.DOTALL)
+                    if mr:
+                        span_r = max(1, int(mr.group(1)))
+                        txt_r = _clean_latex_cell(mr.group(2))
+                        if span_r > 1:
+                            multirow_carry[c_idx] = [span_r - 1, txt_r]
+                        cleaned_row.append(txt_r)
+                    else:
+                        c_txt = _clean_latex_cell(raw_val)
+                        if not c_txt and c_idx in multirow_carry and multirow_carry[c_idx][0] > 0:
+                            c_txt = multirow_carry[c_idx][1]
+                            multirow_carry[c_idx][0] -= 1
+                        cleaned_row.append(c_txt)
+
+                # Leading non-numeric columns before the first decimal metric are the row's entity descriptors
+                first_metric_col = next((idx for idx, v in enumerate(cleaned_row) if METRIC_CELL_RE.match(v)), len(cleaned_row))
+                row_descriptors: list[str] = []
+                row_proto_parts: list[str] = []
+                for c_idx in range(first_metric_col):
+                    val_txt = cleaned_row[c_idx]
+                    if not val_txt or re.match(r"^[+-]?\d+(?:\.\d+)?%?$", val_txt) or val_txt in {"-", "--", "—", "N/A", "n/a"}:
+                        continue
+                    hdr_norm = _norm_descriptor(" ".join(active_col_headers[c_idx])) if c_idx < len(active_col_headers) else ""
+                    if hdr_norm in SKIP_INDEX_HEADERS or any(w in hdr_norm.split() for w in ("sites", "voxels", "samples", "params", "channels")):
+                        continue
+                    row_descriptors.append(val_txt)
+                    p = _extract_proto_tag(val_txt)
+                    if p != "canonical":
+                        row_proto_parts.append(p)
+
+                for c_idx, val_txt in enumerate(cleaned_row):
+                    mm = METRIC_CELL_RE.match(val_txt)
+                    if not mm:
+                        continue
+                    col_stack = active_col_headers[c_idx] if c_idx < len(active_col_headers) else []
+                    hdr_raw = " ".join(col_stack)
+                    hdr_norm_full = _norm_descriptor(hdr_raw)
+                    if hdr_norm_full in SKIP_INDEX_HEADERS or any(w in hdr_norm_full.split() for w in ("sites", "voxels", "samples", "params")):
+                        continue
+
+                    num_str = mm.group(1)
+                    val_float = float(num_str)
+                    dec_places = len(num_str.split(".")[1]) if "." in num_str else 0
+
+                    col_proto = _extract_proto_tag(hdr_raw)
+                    proto_candidates = [p for p in [table_proto, block_proto, col_proto, *row_proto_parts] if p != "canonical"]
+                    effective_proto = "+".join(sorted(set(proto_candidates))) if proto_candidates else "canonical"
+
+                    # Use leaf column header unless the leaf header repeats across multiple columns in this block
+                    if col_stack:
+                        leaf_norm = _norm_descriptor(col_stack[-1])
+                        chosen_col_pieces = col_stack if leaf_counts.get(leaf_norm, 0) > 1 else [col_stack[-1]]
+                    else:
+                        chosen_col_pieces = []
+
+                    entities: set[str] = set()
+                    metric_hints: list[str] = []
+                    for raw_piece in [*row_descriptors, *chosen_col_pieces]:
+                        nd = _norm_descriptor(raw_piece)
+                        if not nd or nd in GENERIC_ROLE_HEADERS or nd in SKIP_INDEX_HEADERS:
+                            continue
+                        mh = _classify_metric_hint(nd)
+                        if mh:
+                            metric_hints.append(mh)
+                            rem = re.sub(
+                                r"\b(?:test|val|validation|train|mean|avg|average|pooled|score|scores|r\s*2|r2|rsq|acc|accuracy|top\s*1|top\s*5|ppl|perplexity|latency|runtime|time|ms|gb|mb|s|f1|auc|auroc|recall|precision|loss|nll|rmse|mse|mae|corr)\b",
+                                " ",
+                                nd,
+                            )
+                            rem = re.sub(r"\s+", " ", rem).strip()
+                            if len(rem) >= 2 and rem not in GENERIC_ROLE_HEADERS:
+                                entities.add(rem)
+                        else:
+                            entities.add(nd)
+
+                    if len(entities) >= 2:
+                        out_cells.append(
+                            {
+                                "table_label": table_rec["label"],
+                                "proto": effective_proto,
+                                "entities": frozenset(entities),
+                                "metric_hint": metric_hints[-1] if metric_hints else (block_metric or table_caption_metric),
+                                "value": val_float,
+                                "decimals": dec_places,
+                                "raw": num_str,
+                            }
+                        )
+    return out_cells
+
+
+def lint_cross_table_consistency(declared_tables: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    per_table_cells: list[list[dict[str, Any]]] = [extract_table_metric_cells(t) for t in declared_tables]
+    # Count how many cells share `(proto, entities)` inside each table to know if metric_hint disambiguation is required
+    entity_mult_per_table: list[dict[tuple[str, frozenset[str]], int]] = []
+    for cells in per_table_cells:
+        counts: dict[tuple[str, frozenset[str]], int] = {}
+        for c in cells:
+            k = (c["proto"], c["entities"])
+            counts[k] = counts.get(k, 0) + 1
+        entity_mult_per_table.append(counts)
+
+    conflicts: list[dict[str, Any]] = []
+    seen_pairs: set[tuple[str, str, tuple[str, ...], str]] = set()
+
+    for i in range(len(per_table_cells)):
+        for j in range(i + 1, len(per_table_cells)):
+            for c1 in per_table_cells[i]:
+                for c2 in per_table_cells[j]:
+                    if c1["proto"] != c2["proto"] or c1["entities"] != c2["entities"]:
+                        continue
+                    m1, m2 = c1["metric_hint"], c2["metric_hint"]
+                    if m1 and m2:
+                        if m1 != m2:
+                            continue
+                    elif m1 or m2:
+                        # One side lacks an explicit metric header; safe to match iff neither table has >1 metric column for these entities
+                        if (
+                            entity_mult_per_table[i][(c1["proto"], c1["entities"])] > 1
+                            or entity_mult_per_table[j][(c2["proto"], c2["entities"])] > 1
+                        ):
+                            continue
+
+                    min_dec = min(c1["decimals"], c2["decimals"])
+                    tol = 0.500001 * (10.0 ** (-min_dec))
+                    diff = abs(c1["value"] - c2["value"])
+                    if diff > tol:
+                        ent_tuple = tuple(sorted(c1["entities"]))
+                        pair_sig = (c1["table_label"], c2["table_label"], ent_tuple, m1 or m2)
+                        if pair_sig not in seen_pairs:
+                            seen_pairs.add(pair_sig)
+                            conflicts.append(
+                                {
+                                    "table_a": c1["table_label"],
+                                    "table_b": c2["table_label"],
+                                    "protocol": c1["proto"],
+                                    "shared_entities": list(ent_tuple),
+                                    "metric": m1 or m2 or "(implicit)",
+                                    "value_a": c1["raw"],
+                                    "value_b": c2["raw"],
+                                    "abs_diff": round(diff, 6),
+                                }
+                            )
+    return conflicts
+
+
+def lint_abstract_body_numbers(clean_tex: str, has_body: bool) -> list[dict[str, str]]:
+    if not has_body:
+        return []
+    m = ABSTRACT_ENV_RE.search(clean_tex)
+    if m:
+        raw_abs = m.group(1)
+        body_rest = clean_tex[: m.start()] + " " + clean_tex[m.end() :]
+    else:
+        bm = re.search(r"\\abstract\s*\{", clean_tex)
+        if not bm:
+            return []
+        raw_abs = extract_balanced_braces(clean_tex, r"\\abstract\s*\{")
+        body_rest = clean_tex.replace(raw_abs, " ", 1)
+
+    abs_clean = re.sub(r"\\(?:cite\w*|ref|cref|Cref|label)(?:\[[^\]]*\])*\{[^}]*\}", " ", raw_abs)
+    # Mask common significance thresholds & version numbers (e.g. p < 0.05, v2.1)
+    abs_clean = re.sub(r"\b(?:p|alpha|\\alpha)\s*[<=]\s*0\.0\d+\b", " ", abs_clean, flags=re.IGNORECASE)
+    abs_clean = re.sub(r"\bv\d+\.\d+\b", " ", abs_clean, flags=re.IGNORECASE)
+
+    abs_nums = re.findall(r"(?<![A-Za-z0-9_.])([+-]?\d+\.\d+)(?![A-Za-z0-9_.])", abs_clean)
+    if not abs_nums:
+        return []
+
+    body_tokens = re.findall(r"(?<![A-Za-z0-9_])([+-]?\d+(?:\.\d+)?)(?![A-Za-z0-9_])", body_rest)
+    body_parsed: list[tuple[float, int]] = []
+    for bt in body_tokens:
+        try:
+            bv = float(bt)
+            bd = len(bt.split(".")[1]) if "." in bt else 0
+            body_parsed.append((bv, bd))
+        except ValueError:
+            continue
+
+    unique_floats = sorted({bv for bv, _ in body_parsed})[:300]
+    unmatched: list[dict[str, str]] = []
+    seen_raw: set[str] = set()
+
+    for raw_n in abs_nums:
+        if raw_n in seen_raw:
+            continue
+        seen_raw.add(raw_n)
+        av = float(raw_n)
+        ad = len(raw_n.split(".")[1])
+        tol_a = 0.55 * (10.0 ** (-ad))
+
+        matched = False
+        for bv, bd in body_parsed:
+            tol_pair = 0.500001 * (10.0 ** (-min(ad, bd))) if bd > 0 else tol_a
+            if (
+                abs(av - bv) <= tol_pair
+                or abs(abs(av) - abs(bv)) <= tol_pair
+                or abs(av - 100.0 * bv) <= tol_a
+                or abs(av / 100.0 - bv) <= tol_a / 100.0
+            ):
+                matched = True
+                break
+
+        if not matched and len(unique_floats) <= 300:
+            for idx_a, x in enumerate(unique_floats):
+                for y in unique_floats[idx_a + 1 :]:
+                    if abs(abs(y - x) - abs(av)) <= tol_a:
+                        matched = True
+                        break
+                    if abs(x) > 1e-9 and abs(abs(y / x) - abs(av)) <= tol_a:
+                        matched = True
+                        break
+                    if abs(y) > 1e-9 and abs(abs(x / y) - abs(av)) <= tol_a:
+                        matched = True
+                        break
+                if matched:
+                    break
+
+        if not matched:
+            unmatched.append(
+                {
+                    "number": raw_n,
+                    "message": f"Decimal metric '{raw_n}' in Abstract does not match any number (or pairwise diff/ratio) in manuscript body or tables (check for stale multi-round numbers).",
+                }
+            )
+    return unmatched
+
+
+def lint_tex_source(tex_text: str, check_abstract: bool = True, check_consistency: bool = True) -> dict[str, Any]:
     clean_tex = strip_comments(tex_text)
 
     sections_index = [(sm.start(), re.sub(r"\s+", " ", sm.group(1)).strip()) for sm in SECTION_HEADING_RE.finditer(clean_tex)]
@@ -302,6 +764,7 @@ def lint_tex_source(tex_text: str, check_abstract: bool = True) -> dict[str, Any
             "label": primary_label,
             "all_labels": labels,
             "section": _nearest_section(m.start()),
+            "raw_body": body,
             "caption_full": caption,
             "caption_preview": caption[:200],
         }
@@ -410,6 +873,11 @@ def lint_tex_source(tex_text: str, check_abstract: bool = True) -> dict[str, Any
                 }
             )
 
+    # 8. Cross-Artifact Numeric & Protocol Consistency
+    has_body = bool(sections_index or declared_figures or declared_tables)
+    cross_table_conflicts = lint_cross_table_consistency(declared_tables) if check_consistency else []
+    abstract_unmatched_numbers = lint_abstract_body_numbers(clean_tex, has_body) if check_consistency else []
+
     return {
         "counts": {
             "declared_figures": len(declared_figures),
@@ -420,6 +888,8 @@ def lint_tex_source(tex_text: str, check_abstract: bool = True) -> dict[str, Any
             "pointer_topic_sentences": len(pointer_sentences),
             "weak_descriptive_figure_captions": len(weak_captions),
             "abstract_narrative_warnings": len(abstract_warnings),
+            "cross_table_conflicts": len(cross_table_conflicts),
+            "abstract_unmatched_numbers": len(abstract_unmatched_numbers),
         },
         "clean": not (
             orphan_visuals
@@ -428,8 +898,12 @@ def lint_tex_source(tex_text: str, check_abstract: bool = True) -> dict[str, Any
             or pointer_sentences
             or weak_captions
             or abstract_warnings
+            or cross_table_conflicts
+            or abstract_unmatched_numbers
         ),
         "visual_inventory": visual_inventory,
+        "cross_table_conflicts": cross_table_conflicts,
+        "abstract_unmatched_numbers": abstract_unmatched_numbers,
         "orphan_visuals": orphan_visuals,
         "out_of_order_callouts": out_of_order,
         "undefined_visual_refs": undefined_visual_refs,
@@ -441,10 +915,11 @@ def lint_tex_source(tex_text: str, check_abstract: bool = True) -> dict[str, Any
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Audit LaTeX prose <-> figure/table callouts, ordering, captions, and Abstract ABT/AAA/DHY narrative balance."
+        description="Audit LaTeX prose <-> figure/table callouts, ordering, captions, Abstract ABT/AAA/DHY narrative, and Cross-Table/Abstract numeric consistency."
     )
     parser.add_argument("target", help="Path to root main.tex file or manuscript directory")
     parser.add_argument("--no-abstract-lint", action="store_true", help="Skip Abstract AAA/DHY narrative spectrum checks")
+    parser.add_argument("--no-consistency-lint", action="store_true", help="Skip cross-table and abstract-body numeric consistency checks")
     parser.add_argument("--output", "-o", help="Optional JSON report output path")
     args = parser.parse_args()
 
@@ -459,7 +934,11 @@ def main() -> None:
         else:
             full_tex = "\n".join(t.read_text(encoding="utf-8", errors="ignore") for t in tex_files)
 
-    report = lint_tex_source(full_tex, check_abstract=not args.no_abstract_lint)
+    report = lint_tex_source(
+        full_tex,
+        check_abstract=not args.no_abstract_lint,
+        check_consistency=not args.no_consistency_lint,
+    )
     out_str = json.dumps(report, indent=2, ensure_ascii=False) + "\n"
     if args.output:
         Path(args.output).expanduser().write_text(out_str, encoding="utf-8")
