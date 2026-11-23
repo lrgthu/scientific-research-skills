@@ -38,7 +38,7 @@
  │          • 解析极限/守恒律测试预言机、独立 `default_rng(seed)` 随机流与 AST 静态审计器（`audit_scientific_python.py`）
  │
  └──► [3. scientific-writing]    （Stage 3：学术论文架构重构与出版级图表工程 —— 与上游双向联动 ⇄）
-       ├── scientific-writing:
+       ├── scientific-writing:   （每次激活自动级联调用 `scientific-figures`，实现图文一体同步重构与检视）
        │    • 反向文献按需联动（写 Intro/Related Work、H1->H2 主线转向及定稿 .bib 核验时自动拉起 [1]，纯润色走零延迟快车道）
        │    • 反补丁全局复盘重写协议（新实验迭代后零数据/公式/引文退化的整体重构）
        │    • 叙事光谱诊断（Olson `AAA/ABT/DHY`）、Dobzhansky 核心母题、`iABT->cABT->kABT` 浓缩、阴性结果重构与学术报告编排

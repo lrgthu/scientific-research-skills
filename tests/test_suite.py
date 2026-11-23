@@ -99,6 +99,19 @@ class TestPluginAndSkillManifests(unittest.TestCase):
                 content = f.read_text(encoding="utf-8")
                 self.assertNotIn("/Users/", content, f"Hardcoded /Users/ path leaked in {f}")
 
+    def test_scientific_writing_mandates_automatic_figures_coinvocation(self) -> None:
+        writing_skill = REPO_ROOT / "plugins/scientific-writing/skills/scientific-writing/SKILL.md"
+        figures_target = (writing_skill.parent / "../scientific-figures/SKILL.md").resolve()
+        self.assertTrue(figures_target.is_file(), f"Broken relative sibling path: {figures_target}")
+
+        writing_txt = writing_skill.read_text(encoding="utf-8")
+        self.assertIn("Mandatory Automatic Co-Invocation", writing_txt)
+        self.assertIn("MUST immediately read [`../scientific-figures/SKILL.md`](../scientific-figures/SKILL.md)", writing_txt)
+
+        writing_rules = (REPO_ROOT / "plugins/scientific-writing/rules/AGENTS.md").read_text(encoding="utf-8")
+        self.assertIn("MUST** read **BOTH** `scientific-writing`", writing_rules)
+        self.assertNotIn("pure prose tasks load `scientific-writing` only", writing_rules)
+
 
 class TestBibtexAndIdentifierEdgeCases(unittest.TestCase):
     def test_identifier_classification_including_openreview(self) -> None:

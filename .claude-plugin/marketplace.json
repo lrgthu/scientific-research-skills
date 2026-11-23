@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Full-lifecycle open-stack scientific research skills (Stages 0–3): Strong Inference problem selection & Pareto ideation, citation graph lineage & retraction auditing, LaTeX/full-text evidence matrices, reproducible Google-style scientific Python, and anti-patchwork scholarly writing & 5-gate assertion-evidence figures.",
-    "version": "2.0.0"
+    "version": "2.0.1"
   },
   "plugins": [
     {
@@ -33,8 +33,8 @@
     {
       "name": "scientific-writing",
       "source": "./plugins/scientific-writing",
-      "description": "Stage-3 scholarly writing, scientific storytelling & publication figure suite: Anti-Patchwork Holistic Reconstruction, Cross-Artifact Numeric/Protocol Consistency Audit, Olson ABT/Narrative Spectrum, 5-Gate Assertion-Evidence Figure/Table Audit (Doumont, Alley, Frankel & DePace, Cargill), Schimel OCAR, Gopen & Swan mechanics, and Wilke + Rougier figure & Booktabs engineering.",
-      "version": "1.7.0",
+      "description": "Stage-3 scholarly writing, scientific storytelling & publication figure suite: scientific-writing automatically co-invokes scientific-figures across Anti-Patchwork Holistic Reconstruction, Cross-Artifact Numeric/Protocol Consistency Audit, Olson ABT/Narrative Spectrum, 5-Gate Assertion-Evidence Figure/Table Audit (Doumont, Alley, Frankel & DePace, Cargill), Schimel OCAR, Gopen & Swan mechanics, and Wilke + Rougier figure & Booktabs engineering.",
+      "version": "1.8.0",
       "license": "MIT"
     }
   ]

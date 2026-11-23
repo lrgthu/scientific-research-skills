@@ -1,6 +1,6 @@
-# Scientific Writing & Figures (Global Research Communication Suite `v1.7.0`)
+# Scientific Writing & Figures (Global Research Communication Suite `v1.8.0`)
 
-Global plugin bundling **two decoupled, on-demand skills** plus a unified **Always-On Global Rule (`rules/AGENTS.md`)** for scholarly writing, scientific storytelling, cross-artifact numeric/protocol consistency auditing, visual-by-visual figure/table assertion-evidence auditing, author rebuttals, research talks, and publication figure/table engineering:
+Global plugin bundling **`scientific-writing`** (which **automatically co-invokes `scientific-figures`**) and **`scientific-figures`** plus a unified **Always-On Global Rule (`rules/AGENTS.md`)** for scholarly writing, scientific storytelling, cross-artifact numeric/protocol consistency auditing, visual-by-visual figure/table assertion-evidence auditing, author rebuttals, research talks, and publication figure/table engineering:
 
 1. **`scientific-writing` Skill** (`skills/scientific-writing/SKILL.md` + `references/` + `scripts/lint_manuscript_visuals.py`):
    - Operationalizes **Joshua Schimel's *Writing Science***, **Randy Olson's *Houston, We Have a Narrative*** (`WSP`, Dobzhansky Template, `AAA ↔ ABT ↔ DHY` Narrative Spectrum, Goldilocks `iABT → cABT → kABT`, honest `Agon` null/boundary reframing), **Margaret Cargill & Patrick O'Connor's Figure-First Storyboarding**, and **George D. Gopen & Judith A. Swan's *"The Science of Scientific Writing"*** across papers, grant proposals (`ABDCE`), **Author Rebuttals**, and **Oral Research Talks / Elevator Pitches**.
@@ -10,9 +10,8 @@ Global plugin bundling **two decoupled, on-demand skills** plus a unified **Alwa
    - Integrates a **5-Gate Figure & Table Assertion-Evidence Audit Protocol** synthesizing **Jean-luc Doumont** (*Trees, Maps, and Theorems*), **Michael Alley** (*Assertion-Evidence* / *The Craft of Scientific Writing*), **Felice Frankel & Angela DePace** (*Visual Strategies*), and **Cargill & O'Connor / Schimel** with **Claus O. Wilke's *Fundamentals of Data Visualization* (Chapters 1–29)** and **Nicolas P. Rougier et al.'s *"Ten Simple Rules for Better Figures"*** (`10.1371/journal.pcbi.1003833`).
    - Covers visual survival triage (`KEEP` / `REFACTOR` / `SPLIT` / `MERGE` / `INLINE TO PROSE` / `DEMOTE OR DELETE`), message-driven chart selection, Proportional Ink, Log/Ratio scaling, Okabe–Ito CVD-safe palettes, Direct Labeling, Small Multiples vs. Compound Alignment, Clean Publication Tables (Booktabs discipline), Alley Assertion-Evidence Slides, Vector/Lossless File Formats (`publication_rcparams.py`), and mandatory post-render visual inspection.
 
-## Scope & Decoupled Trigger Design
+## Scope & Co-Invocation Design
 
-- **Pure Plotting / Table Tasks** → Activates `scientific-figures` only (zero prose-grammar context bloat).
-- **Pure Manuscript / Proposal / Rebuttal / Talk Prose Tasks** → Activates `scientific-writing` only (zero Matplotlib/colormap code bloat).
-- **Full Paper / Talk + Figures / Tables / Captions Tasks** → Both skills coordinate seamlessly across figure story arcs (`OCAR` + `ABT`), left-to-right visual flow, clean Booktabs tables, and self-contained declarative captions.
+- **Manuscript / Proposal / Rebuttal / Talk Tasks (`/scientific-writing`)** → **Automatically co-loads `scientific-figures`** (`../scientific-figures/SKILL.md`) so `OCAR`/`ABT` prose architecture, 5-Gate visual storyboarding, Booktabs tables, declarative captions, and `Protocol P1/P2` numeric consistency stay 100% locked together.
+- **Standalone Isolated Chart / Table Tasks (`/scientific-figures`)** → Can be invoked directly for standalone plotting without full-manuscript rewriting overhead.
 - **Exempt**: Everyday chat Q&A, code comments/`README.md`/PRs, non-scientific UI, infrastructure/ops dashboards, and 3D biomolecular structures (where interactive sidecar viewers take priority).

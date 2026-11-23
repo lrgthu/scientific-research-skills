@@ -38,7 +38,7 @@ Raw Curiosity / Seed Papers / Observed Anomaly
  │          • Analytical/Conservation Oracles, Isolated `default_rng`, & AST Static Auditor (`audit_scientific_python.py`)
  │
  └──► [3. scientific-writing]    (Stage 3: Manuscript Architecture & Publication Visuals — Bidirectional ⇄ Bridge)
-       ├── scientific-writing:
+       ├── scientific-writing:   (Automatically co-invokes `scientific-figures` on every writing/revision task)
        │    • Conditional Literature Bridge (Calls back to [1] for Intro/Related Work, H1->H2 Pivots & .bib Verify)
        │    • Anti-Patchwork Holistic Reconstruction Protocol (Zero Factual/LaTeX Regression)
        │    • Narrative Spectrum (`AAA/ABT/DHY`), Dobzhansky Theme, `iABT->cABT->kABT`, Null-Result Reframing & Talks

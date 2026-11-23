@@ -1,10 +1,10 @@
 {
   "name": "scientific-writing",
   "displayName": "Scientific Writing & Figures",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "author": "lrgthu",
   "repository": "https://github.com/lrgthu/scientific-research-skills",
-  "description": "Global research communication suite: decoupled scientific-writing skill (Schimel + Olson ABT/Narrative Spectrum + Gopen & Swan + Anti-Patchwork + Cross-Artifact Numeric/Protocol Consistency) and scientific-figures skill (5-Gate Assertion-Evidence Figure/Table Audit + Doumont/Alley/Frankel & DePace + Wilke Ch. 1–29 + Rougier Ten Simple Rules).",
+  "description": "Global research communication suite: scientific-writing skill (Schimel + Olson ABT/Narrative Spectrum + Gopen & Swan + Anti-Patchwork + Cross-Artifact Numeric/Protocol Consistency; automatically co-invokes scientific-figures) and scientific-figures skill (5-Gate Assertion-Evidence Figure/Table Audit + Doumont/Alley/Frankel & DePace + Wilke Ch. 1–29 + Rougier Ten Simple Rules).",
   "logo": "assets/logo.svg",
   "suggestedPrompts": [
     "Run a full Cross-Artifact Consistency + 5-Gate Assertion-Evidence Visual Audit across my manuscript, tables, and appendix",
