@@ -691,9 +691,11 @@ class TestLLMReviewTriageTools(unittest.TestCase):
     def test_ledger_flags_defensive_plans_round3_drift_and_appeasement(self) -> None:
         rep_clean = arh.summarize_triage_ledger(arh._STARTER_LEDGER)
         self.assertTrue(rep_clean["clean"], msg=json.dumps(rep_clean, indent=2))
+        md_brief = arh.render_ledger_markdown(arh._STARTER_LEDGER, rep_clean)
+        self.assertIn("Stage-A Item-by-Item Critical Cross-Examination Log", md_brief)
 
         bad_ledger = {
-            "manuscript_title": "Drift Test",
+            "manuscript_title": "Drift & Sycophancy Test",
             "soul_anchor": {
                 "core_thesis_kabt": "Valid core thesis with clear [BUT] and [THEREFORE] structure.",
                 "paper_archetype": "diagnostic_refutation",
@@ -702,21 +704,82 @@ class TestLLMReviewTriageTools(unittest.TestCase):
             },
             "comments": [
                 {
-                    "id": f"C{i}",
-                    "summary": "Minor nitpick",
+                    "id": "C1_no_audit",
+                    "summary": "Accepted without running Stage-A critical audit",
                     "bucket": "CLARIFY_STRUCTURALLY",
                     "objective_bug": False,
-                    "planned_action": "Soften claims and add qualifiers in the abstract." if i == 1 else "Add extra sentence.",
-                }
-                for i in range(1, 6)
+                    "planned_action": "Soften claims and add qualifiers in the abstract.",
+                },
+                {
+                    "id": "C2_sycophancy",
+                    "summary": "Sycophantic agreement phrase",
+                    "critical_audit": {
+                        "manuscript_fact_check": "Checked Section 3 lines 120-140 of the draft.",
+                        "premise_validity_challenge": "The reviewer makes a great point about variance.",
+                        "first_order_impact": "Moderate impact on bounds.",
+                        "survives_scrutiny": True,
+                    },
+                    "bucket": "CLARIFY_STRUCTURALLY",
+                    "objective_bug": False,
+                    "planned_action": "Define variance bound explicitly.",
+                },
+                {
+                    "id": "C3_unaudited_accept",
+                    "summary": "Failed scrutiny yet still accepted into Stage B",
+                    "critical_audit": {
+                        "manuscript_fact_check": "Checked Appendix B: baseline grid already present.",
+                        "premise_validity_challenge": "Premise is factually wrong; grid was already run.",
+                        "first_order_impact": "Zero causal impact.",
+                        "survives_scrutiny": False,
+                    },
+                    "bucket": "CLARIFY_STRUCTURALLY",
+                    "objective_bug": False,
+                    "planned_action": "Add extra apology footnote anyway.",
+                },
+                {
+                    "id": "C4_sneaky_compromise",
+                    "summary": "Rejected bucket yet sneaks a compromise edit",
+                    "critical_audit": {
+                        "manuscript_fact_check": "Checked Section 6: limitation already stated.",
+                        "premise_validity_challenge": "Out-of-scope multimodal request.",
+                        "first_order_impact": "Zero impact on text-decoder claim.",
+                        "survives_scrutiny": False,
+                    },
+                    "bucket": "IGNORE_LIMITATION_BOOMERANG",
+                    "objective_bug": False,
+                    "planned_action": "Add a brief caveat in the Introduction just in case.",
+                },
+                {
+                    "id": "C5_extra_accept",
+                    "summary": "Extra non-bug accept in Round 3",
+                    "critical_audit": {
+                        "manuscript_fact_check": "Checked Section 2 notation definitions.",
+                        "premise_validity_challenge": "Symbol k_t was introduced two lines late.",
+                        "first_order_impact": "Minor readability stumble.",
+                        "survives_scrutiny": True,
+                    },
+                    "bucket": "CLARIFY_STRUCTURALLY",
+                    "objective_bug": False,
+                    "planned_action": "Define k_t before Eq. (2).",
+                },
             ],
         }
         rep_bad = arh.summarize_triage_ledger(bad_ledger)
         self.assertFalse(rep_bad["clean"])
         codes = {iss["code"] for iss in rep_bad["issues"]}
-        self.assertIn("DEFENSIVE_ACTION_PLAN", codes)
-        self.assertIn("ROUND_3_DRIFT_RISK", codes)
-        self.assertIn("UNFILTERED_APPEASEMENT_RISK", codes)
+        expected_codes = {
+            "MISSING_CRITICAL_AUDIT",
+            "SYCOPHANTIC_AGREEMENT_PHRASE",
+            "UNAUDITED_ACCEPTANCE",
+            "COMPROMISE_EDIT_ON_REJECTED_COMMENT",
+            "DEFENSIVE_ACTION_PLAN",
+            "ROUND_3_DRIFT_RISK",
+            "UNFILTERED_APPEASEMENT_RISK",
+        }
+        self.assertTrue(
+            expected_codes.issubset(codes),
+            msg=f"Missing expected error codes: {expected_codes - codes}",
+        )
 
     def test_diff_audit_catches_bilingual_stacked_hedges_and_allows_exact_scoping(self) -> None:
         before_tex = (

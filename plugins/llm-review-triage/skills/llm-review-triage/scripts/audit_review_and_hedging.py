@@ -2,9 +2,10 @@
 r"""Audits LLM-review triage ledgers and guards manuscript diffs against defensive hedging.
 
 Provides two deterministic, zero-dependency subcommands:
-1. `init-ledger` / `summarize-ledger`: Validates Area-Chair review triage ledgers,
-   flags multi-round contractive drift and unfiltered appeasement, and renders a
-   Markdown decision brief.
+1. `init-ledger` / `summarize-ledger`: Enforces a strict two-stage Area-Chair
+   gate (Stage A item-by-item critical cross-examination BEFORE Stage B solution
+   planning), blocks reflexive sycophancy and compromise edits on rejected
+   comments, checks Round <= 2 drift, and renders a Markdown decision brief.
 2. `diff-audit`: Compares `before` and `after` manuscript drafts (.tex / .md,
    English & Chinese) to catch stacked qualifier chains, reviewer-appeasement scar
    tissue, Abstract hook dilution, and word-count bloat.
@@ -34,6 +35,19 @@ VALID_BUCKETS = frozenset({
 })
 
 ACCEPTED_BUCKETS = frozenset({"DO_NOW_SUBSTANCE", "CLARIFY_STRUCTURALLY"})
+NO_OP_PLANS = frozenset({
+    "",
+    "none",
+    "none.",
+    "none (0 edits)",
+    "none (0 edits).",
+    "0 edits",
+    "0 edits.",
+    "discard",
+    "ignore",
+    "无（0 字修改）",
+    "0 字修改",
+})
 
 EN_HEDGE_RE = re.compile(
     r"\b(?:may|might|could|perhaps|possibly|potentially|somewhat|preliminar(?:y|ily)|"
@@ -63,6 +77,14 @@ DEFENSIVE_PLAN_RE = re.compile(
     re.IGNORECASE,
 )
 
+SYCOPHANCY_RE = re.compile(
+    r"(?:\b(?:the\s+reviewer\s+(?:makes|raises)\s+a\s+(?:very\s+)?(?:valid|good|great|fair|strong)\s+point|"
+    r"we\s+(?:fully\s+|completely\s+)?agree\s+with\s+the\s+reviewer|"
+    r"this\s+is\s+a\s+very\s+reasonable\s+concern)\b|"
+    r"审稿人(?:说|提)得很有道理|完全同意审稿人|确实如审稿人所言)",
+    re.IGNORECASE,
+)
+
 ABSTRACT_TEX_RE = re.compile(
     r"\\begin\{abstract\}(.*?)\\end\{abstract\}", re.DOTALL | re.IGNORECASE
 )
@@ -89,31 +111,49 @@ _STARTER_LEDGER: dict[str, Any] = {
             "id": "C1",
             "source_model": "Frontier-LRM-A",
             "summary": "Compare against an iso-byte INT4 KV quantization baseline at matched 20% memory budget.",
+            "critical_audit": {
+                "manuscript_fact_check": "Checked Section 4 & Table 1: baselines include H2O and SnapKV in FP16, without a uniform INT4 KV baseline at identical byte budget.",
+                "premise_validity_challenge": "Tested whether INT4 could rival rank-r sketching: plausible, because INT4 keeps all token positions at lower precision rather than evicting tokens.",
+                "first_order_impact": "High (>25% chance of narrowing or flipping memory-recall Pareto dominance if untested).",
+                "survives_scrutiny": True,
+            },
             "bucket": "DO_NOW_SUBSTANCE",
             "pathology_tag": "NONE",
             "objective_bug": False,
-            "rationale": "High-ROI control ruling out rival hypothesis H2 (uniform precision compression vs. subspace sketching).",
+            "rationale": "Survived Q1-Q5: genuine competing mechanism H2 testable in ~1.5 GPU-hours.",
             "planned_action": "Run INT4 KV baseline on the 200-sample 2-hop RULER slice (~1.5 GPU-hours) and add row to Table 1.",
         },
         {
             "id": "C2",
             "source_model": "Frontier-LRM-A",
             "summary": "The paper fails to evaluate 70B+ models or multimodal video-LLM caches.",
+            "critical_audit": {
+                "manuscript_fact_check": "Checked Section 6 lines 412-418 & Abstract: scope is explicitly bounded to 7B-14B text decoders.",
+                "premise_validity_challenge": "Subspace decay of attention keys is architectural across GQA/MHA heads; multimodal video tokens are a distinct problem domain.",
+                "first_order_impact": "Zero impact on validity of the 7B-14B text-decoder mechanism claim.",
+                "survives_scrutiny": False,
+            },
             "bucket": "IGNORE_LIMITATION_BOOMERANG",
             "pathology_tag": "LIMITATION_BOOMERANG",
             "objective_bug": False,
-            "rationale": "Already explicitly bounded in Section 6; claims in Abstract/Intro are scoped to 7B-14B text decoders.",
+            "rationale": "Failed Q3 (Limitation Boomerang): weaponizes an already-transparent boundary.",
             "planned_action": "None (0 edits).",
         },
         {
             "id": "C3",
             "source_model": "Frontier-LRM-B",
             "summary": "Claims in the Abstract are too strong; replace 'recovers 99.1% recall' with 'may preliminarily help mitigate recall loss under certain configurations'.",
+            "critical_audit": {
+                "manuscript_fact_check": "Checked Table 1: 99.1% recall is the exact macro-mean across 5 seeds on RULER-128k.",
+                "premise_validity_challenge": "Reviewer conflates precision scoping with epistemic timidity; exact numbers on stated benchmarks are factual, not overclaims.",
+                "first_order_impact": "Negative impact: obeying would inject stacked hedges and obscure empirical effect size.",
+                "survives_scrutiny": False,
+            },
             "bucket": "IGNORE_OVERTHINKING_OR_HEDGE",
             "pathology_tag": "DEFENSIVE_HEDGING_TRAP",
             "objective_bug": False,
-            "rationale": "99.1% is an exact empirical measurement on the stated benchmark; adding stacked hedges destroys clarity.",
-            "planned_action": "Keep exact numeric claim scoped by 'Across 7B-14B decoders up to 128k tokens'.",
+            "rationale": "Failed Q2 & Q5: formalist hedging demand that would degrade prose clarity.",
+            "planned_action": "None (0 edits).",
         },
     ],
 }
@@ -121,11 +161,7 @@ _STARTER_LEDGER: dict[str, Any] = {
 
 def strip_comments(text: str) -> str:
     """Strips unescaped LaTeX `%` comments for prose measurement."""
-    lines: list[str] = []
-    for raw in text.splitlines():
-        cleaned = re.sub(r"(?<!\\)%.*$", "", raw)
-        lines.append(cleaned)
-    return "\n".join(lines)
+    return "\n".join(re.sub(r"(?<!\\)%.*$", "", raw) for raw in text.splitlines())
 
 
 def count_units(text: str) -> int:
@@ -159,9 +195,9 @@ def audit_added_lines(added_lines: Sequence[tuple[int, str]]) -> list[dict[str, 
     findings: list[dict[str, Any]] = []
     for lineno, line in added_lines:
         for clause in split_clauses(line):
-            en_hits = [m.group(0) for m in EN_HEDGE_RE.finditer(clause)]
-            zh_hits = [m.group(0) for m in ZH_HEDGE_RE.finditer(clause)]
-            hits = en_hits + zh_hits
+            hits = [m.group(0) for m in EN_HEDGE_RE.finditer(clause)] + [
+                m.group(0) for m in ZH_HEDGE_RE.finditer(clause)
+            ]
             if len(hits) >= 2:
                 findings.append({
                     "line": lineno,
@@ -310,13 +346,72 @@ def run_diff_audit(before_text: str, after_text: str) -> dict[str, Any]:
     }
 
 
+def _audit_critical_scrutiny_block(
+    item: Mapping[str, Any], cid: str, bucket: str
+) -> list[dict[str, str]]:
+    """Enforces Stage-A per-comment critical cross-examination BEFORE Stage-B planning."""
+    issues: list[dict[str, str]] = []
+    crit = item.get("critical_audit")
+    if not isinstance(crit, Mapping):
+        return [{
+            "severity": "ERROR",
+            "code": "MISSING_CRITICAL_AUDIT",
+            "message": (
+                f"Comment `{cid}` lacks a `critical_audit` block; interrogate every "
+                "comment against manuscript facts and premise validity BEFORE planning actions."
+            ),
+        }]
+
+    fact_chk = str(crit.get("manuscript_fact_check") or "").strip()
+    prem_chk = str(crit.get("premise_validity_challenge") or "").strip()
+    impact_chk = str(crit.get("first_order_impact") or "").strip()
+    survives = crit.get("survives_scrutiny")
+    if len(fact_chk) < 20 or len(prem_chk) < 20 or len(impact_chk) < 10 or not isinstance(survives, bool):
+        issues.append({
+            "severity": "ERROR",
+            "code": "MISSING_CRITICAL_AUDIT",
+            "message": (
+                f"Comment `{cid}` has incomplete `critical_audit` fields; require substantive "
+                "`manuscript_fact_check`, `premise_validity_challenge`, `first_order_impact`, and boolean `survives_scrutiny`."
+            ),
+        })
+        return issues
+
+    combined_reasoning = f"{fact_chk} {prem_chk} {impact_chk} {item.get('rationale', '')}"
+    if SYCOPHANCY_RE.search(combined_reasoning):
+        issues.append({
+            "severity": "ERROR",
+            "code": "SYCOPHANTIC_AGREEMENT_PHRASE",
+            "message": f"Comment `{cid}` contains reflexive sycophancy; replace polite agreement with concrete verification.",
+        })
+
+    plan_norm = str(item.get("planned_action") or "").strip().lower()
+    if bucket in ACCEPTED_BUCKETS and not survives:
+        issues.append({
+            "severity": "ERROR",
+            "code": "UNAUDITED_ACCEPTANCE",
+            "message": f"Comment `{cid}` is in `{bucket}` despite `survives_scrutiny=false`.",
+        })
+    if not survives and (bucket in ACCEPTED_BUCKETS or plan_norm not in NO_OP_PLANS):
+        issues.append({
+            "severity": "ERROR",
+            "code": "COMPROMISE_EDIT_ON_REJECTED_COMMENT",
+            "message": (
+                f"Comment `{cid}` failed Stage-A scrutiny (`survives_scrutiny=false`) "
+                f"but still proposes an action (`{item.get('planned_action')}`); enforce 0 compromise edits."
+            ),
+        })
+    return issues
+
+
 def _audit_single_comment(
     item: Mapping[str, Any], round_idx: int, by_bucket: dict[str, int]
 ) -> list[dict[str, str]]:
-    """Validates one triaged review comment entry."""
-    issues: list[dict[str, str]] = []
+    """Validates one triaged review comment across Stage A and Stage B."""
     cid = str(item.get("id") or "unnamed")
     bucket = str(item.get("bucket") or "")
+    issues = _audit_critical_scrutiny_block(item, cid, bucket)
+
     if bucket not in VALID_BUCKETS:
         issues.append({
             "severity": "ERROR",
@@ -347,7 +442,7 @@ def _audit_single_comment(
 
 
 def summarize_triage_ledger(payload: Mapping[str, Any]) -> dict[str, Any]:
-    """Audits an Area-Chair review triage ledger for soul lock and round discipline."""
+    """Audits an Area-Chair review triage ledger for two-stage scrutiny and soul lock."""
     soul = payload.get("soul_anchor") if isinstance(payload.get("soul_anchor"), Mapping) else {}
     issues: list[dict[str, str]] = []
 
@@ -403,7 +498,7 @@ def summarize_triage_ledger(payload: Mapping[str, Any]) -> dict[str, Any]:
 def render_ledger_markdown(
     payload: Mapping[str, Any], report: Mapping[str, Any]
 ) -> str:
-    """Renders a concise Area-Chair Triage Markdown brief for author sign-off."""
+    """Renders a Two-Stage Area-Chair Triage Markdown brief for author sign-off."""
     soul = payload.get("soul_anchor") or {}
     comments = payload.get("comments") or []
     lines = [
@@ -414,11 +509,26 @@ def render_ledger_markdown(
         f"- **Paper Archetype**: `{soul.get('paper_archetype', '')}`",
         f"- **Already-Disclosed Limitations**: {'; '.join(str(x) for x in (soul.get('disclosed_limitations') or []))}",
         "",
-        "## 2. Worthwhile High-Leverage Actions (`DO NOW` & `CLARIFY ONCE`)",
+        "## 2. Stage-A Item-by-Item Critical Cross-Examination Log",
+        "",
+        "| ID | Survives? | Fact-Check vs. Manuscript | Premise Falsification & Causal Flip Test |",
+        "| :--- | :---: | :--- | :--- |",
+    ]
+    for item in comments:
+        crit = item.get("critical_audit") or {}
+        verdict = "YES" if crit.get("survives_scrutiny") else "NO"
+        lines.append(
+            f"| `{item.get('id')}` | **{verdict}** | {crit.get('manuscript_fact_check', '')} | "
+            f"{crit.get('premise_validity_challenge', '')} ({crit.get('first_order_impact', '')}) |"
+        )
+
+    lines.extend([
+        "",
+        "## 3. Stage-B Approved Surgical Actions (Stage-A Survivors Only)",
         "",
         "| ID | Bucket | Comment Summary | Surgical Non-Defensive Action |",
         "| :--- | :--- | :--- | :--- |",
-    ]
+    ])
     for item in comments:
         if item.get("bucket") in ACCEPTED_BUCKETS:
             lines.append(
@@ -428,9 +538,9 @@ def render_ledger_markdown(
 
     lines.extend([
         "",
-        "## 3. Discarded AI Reviewer Noise (`0` Manuscript Edits)",
+        "## 4. Rejected at Stage-A Audit (`0` Compromise Edits)",
         "",
-        "| ID | Tag | Comment Summary | Why Safe to Ignore |",
+        "| ID | Tag | Comment Summary | Stage-A Rejection Grounds |",
         "| :--- | :--- | :--- | :--- |",
     ])
     for item in comments:

@@ -13,9 +13,9 @@ Modern frontier reasoning models have full-manuscript context and strong technic
 ## Bundled Components
 
 1. **`llm-review-triage` Skill** (`skills/llm-review-triage/SKILL.md` + `references/`):
+   - **Strict Two-Stage Anti-Sycophancy Gate**: Mandates **Stage A (Item-by-Item Adversarial Cross-Examination — Q1–Q5)** on every comment with **zero reflexive agreement and zero premature solution planning**; *only* comments proven valid, unstated, and first-order impactful (`survives_scrutiny = true`) advance to **Stage B (Surgical Resolution & Response Design)**.
    - **Pre-Triage Soul Lock**: Freezes the manuscript's `kABT` core insight, paper archetype, and already-disclosed `Limitations` before reading a single external comment.
-   - **6-Pathology LRM Critic Filter** vs. **4 High-Leverage Action Categories** (objective math/logic/code defects, high-ROI competing-hypothesis tests, structural comprehension fixes, and single-sentence `"But, yes"` anchors).
    - **Anti-Defensive-Writing Charter**: Enforces **Exact Domain/Equation Scoping over Cowardly Qualifier Chains**, **Single-Locus Caveat Containment**, and **Multi-Round Contractive Drift Hard-Stops**.
 2. **Deterministic Diff & Triage Auditor (`scripts/audit_review_and_hedging.py`)**:
    - `diff-audit <before> <after>`: Quantifies English & Chinese hedge-word surges, stacked qualifier chains (`might potentially appear to...` / `在一定程度上可能似乎...`), apologetic reviewer-appeasement scar tissue, Abstract/Intro hook dilution, and word-count bloat.
-   - `init-ledger` / `summarize-ledger`: Validates triage acceptance discipline and compiles a concise Markdown **Area-Chair Action Brief**.
+   - `init-ledger` / `summarize-ledger`: Enforces per-comment `critical_audit` presence, blocks sycophantic agreement clichés and compromise edits on rejected comments, checks round discipline, and compiles a Markdown **Area-Chair Action Brief**.

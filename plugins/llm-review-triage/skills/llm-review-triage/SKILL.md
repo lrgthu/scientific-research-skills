@@ -3,81 +3,85 @@ name: llm-review-triage
 description: >
   Standalone Area-Chair triage filter and manuscript soul-guard for evaluating
   external LLM / Large Reasoning Model (LRM) peer reviews, simulated referee
-  reports, or multi-round AI critique loops. Separates genuine high-leverage
-  math, experimental, and structural improvements from weaponized honest
-  limitations (Limitation-Boomerangs), test-time overthinking nitpicks,
-  low-ROI confounder hunts, multi-round contractive thesis drift, and defensive
-  qualifier bloat that destroys human voice and originality. Invoke ONLY when
-  the user shares or discusses AI/LLM-generated review feedback, asks which
-  simulated review comments are worth addressing, or triggers /llm-review-triage.
-  Do NOT invoke during normal drafting, coding, or literature tasks.
+  reports, or multi-round AI critique loops. Enforces mandatory item-by-item
+  adversarial critical thinking (zero reflexive agreement) BEFORE allowing any
+  comment into resolution/response planning; filters out weaponized honest
+  limitations, test-time overthinking nitpicks, multi-round contractive thesis
+  drift, and defensive qualifier bloat. Invoke ONLY when the user shares or
+  discusses AI/LLM-generated review feedback, asks which simulated review
+  comments are worth addressing, or triggers /llm-review-triage. Do NOT invoke
+  during normal drafting, coding, or literature tasks.
 ---
 
 # LLM Review Triage & Manuscript Soul-Guard Skill (`/llm-review-triage`)
 
-> **Core Premise**: Frontier reasoning models cast as "critical reviewers" exhibit three structural failure modes driven by test-time overthinking and conservative post-training: **(1) Adversarial Limitation Weaponization** (turning boundaries you already honestly disclosed into "major weaknesses"), **(2) Overthinking Nitpick Inflation** (allocating thousands of reasoning tokens to elevate measure-zero edge cases, $O(\epsilon^2)$ confounders, and low-ROI side quests into authoritative-sounding indictments), and **(3) Formalist Epistemic Legalism** (pushing you to bury bold, original insights under stacked defensive qualifiers until multi-round revisions converge into lifeless legal disclaimers). **Act as a seasoned, pragmatic Area Chair + Co-Author: ruthlessly discard noise, protect the paper's soul and human voice, and extract only genuine high-leverage improvements.**
+> **Ironclad Behavioral Law — Zero Reflexive Agreement & Strict Two-Phase Gate**:
+> Frontier reasoning models write hyper-fluent, authoritative-sounding critiques even when their premise is false, already addressed, or second-order trivial. **You are STRICTLY FORBIDDEN from nodding along (*"The reviewer raises a valid/fair point..."*) or brainstorming fixes while reading a comment.**
+> You **MUST** enforce a hard two-stage separation:
+> - **Stage A (Item-by-Item Adversarial Cross-Examination)**: Interrogate **every single comment individually** against the manuscript's actual text/math/data with a presumption of skepticism, actively testing whether the reviewer's premise is factually wrong, logically flawed, out of scope, or negligible in causal impact. **Zero solution/edit planning is permitted in Stage A.**
+> - **Stage B (Resolution & Response Design — Survivors Only)**: **ONLY** comments that survive all 5 critical-thinking checks in Stage A may advance to Stage B to design surgical experiments, equation fixes, or non-defensive clarifications. Rejected comments get **zero** "just-in-case" compromise edits or footnotes.
 
 ## Reference Modules & Deterministic Auditor
 
-1. **[Frontier Reasoning-Critic Pathologies & Area-Chair Triage Protocol](./references/lrm-critic-pathologies-and-ac-triage.md)** — **Read FIRST when triaging external AI reviews**: Dissects the 6 LRM critic failure modes, the **Causal-Threat × Signal-to-Cost Triage Matrix**, Limitation-Boomerang immunity, Cross-Model Echo collapsing, and **Multi-Round Contractive Drift Stopping Rules**.
-2. **[Anti-Defensive-Writing Charter & Human-Voice Preservation](./references/anti-hedging-and-soul-preservation.md)** — **Read BEFORE editing a single sentence in response to an accepted comment**: **Exact Domain/Equation Scoping vs. Qualifier Soup** (English & Chinese contrasts), **Single-Locus `"But, Yes"` Containment**, banning `"reviewer-appeasement scar tissue"`, and preserving `kABT` punchiness.
-3. **Bundled CLI Diff & Triage Auditor (`<SKILL_DIR>/scripts/audit_review_and_hedging.py`)**:
-   - `uv run "<SKILL_DIR>/scripts/audit_review_and_hedging.py" init-ledger /tmp/triage_ledger.json` — Writes a starter Area-Chair triage JSON ledger.
-   - `uv run "<SKILL_DIR>/scripts/audit_review_and_hedging.py" summarize-ledger /tmp/triage_ledger.json --markdown-out ./review_triage_brief.md` — Audits acceptance ratios & round drift and renders a clean Markdown decision brief.
-   - `uv run "<SKILL_DIR>/scripts/audit_review_and_hedging.py" diff-audit <before_file> <after_file>` — Compares pre-edit vs. post-edit drafts to catch hedge surges, stacked qualifier chains (`might potentially...` / `在一定程度上可能...`), apologetic scar tissue, Abstract dilution, and bloat!
+1. **[Anti-Sycophancy Cross-Examination & LRM Critic Pathologies](./references/lrm-critic-pathologies-and-ac-triage.md)** — **Read FIRST upon receiving any external review**: The **5-Question Per-Comment Falsification Protocol**, worked examples of deconstructing intimidating-but-flawed LRM critiques, the 6 LRM critic failure modes, and **Multi-Round Contractive Drift Stopping Rules**.
+2. **[Anti-Defensive-Writing Charter & Human-Voice Preservation](./references/anti-hedging-and-soul-preservation.md)** — **Read BEFORE designing Stage-B prose edits for surviving comments**: **Exact Domain/Equation Scoping vs. Qualifier Soup** (English & Chinese contrasts), **Single-Locus `"But, Yes"` Containment**, banning `"reviewer-appeasement scar tissue"`, and preserving `kABT` punchiness.
+3. **Bundled CLI Triage & Diff Auditor (`<SKILL_DIR>/scripts/audit_review_and_hedging.py`)**:
+   - `uv run "<SKILL_DIR>/scripts/audit_review_and_hedging.py" init-ledger /tmp/triage_ledger.json` — Scaffolds a two-stage Area-Chair triage JSON template requiring `critical_audit` per comment.
+   - `uv run "<SKILL_DIR>/scripts/audit_review_and_hedging.py" summarize-ledger /tmp/triage_ledger.json --markdown-out ./review_triage_brief.md --strict` — Rejects missing per-comment critical audits, sycophantic agreement phrases, compromise edits on rejected comments, and Round $\ge 3$ drift.
+   - `uv run "<SKILL_DIR>/scripts/audit_review_and_hedging.py" diff-audit <before_file> <after_file> --strict` — Audits pre- vs. post-edit drafts to block stacked hedge chains (`might potentially...` / `在一定程度上可能...`), apologetic scar tissue, Abstract dilution, and bloat!
 
 ---
 
-## Mandatory 5-Step Area-Chair Triage Workflow
+## Mandatory Two-Stage Execution Workflow
 
-### Step 1: Lock the Paper's Soul & Disclosed Boundaries BEFORE Reading the Review
+### Pre-Gate: Lock the Paper's Soul & Disclosed Scope First
 
-Read the manuscript's Abstract, Introduction, Results structure, and Discussion/Limitations **before** evaluating the external review, and lock four **Immutable Anchors**:
-1. **Soul & Original Value (`kABT` + Dobzhansky Spine)**: What is the bold, non-trivial insight or formulation that makes this paper worth reading? *(No review edit may flatten, apologize for, or bury this core claim.)*
-2. **Paper Genre Contract**: Lock what kind of paper this *is* (*Clean Mechanism/Formulation*, *Diagnostic/Understanding Probe*, *Exact Simplification*, *Scaling/Boundary Law*, or *Systems Kernel*). Never allow an external critic to judge a surgical mechanism or diagnostic paper as if its goal were an exhaustive 12-benchmark engineering survey.
-3. **Explicitly Disclosed Limitations Map**: Index every simplifying assumption, scale bound, domain constraint, and deferred direction already honestly stated in the draft (with exact section/line references).
-4. **Critique Iteration Round (`R = 1, 2, >=3`)**:
-   - **`Round 1`**: Open to high-leverage mechanism tests, real math/notation fixes, and genuine structural clarity gaps.
-   - **`Round 2`**: **Objective-Defect-Only Gate**—accept *only* verifiable math/derivation errors, code/metric bugs, or cross-table numeric inconsistencies. Reject new experiment scope expansion and stylistic re-framing!
-   - **`Round >= 3`**: **HARD ANTI-DRIFT STOP**—warn the user explicitly that multi-round LRM critique loops contract toward bland, hyper-hedged fixed points; reject 100% of prose/hedging/scope requests unless an objective mathematical or factual error is proven.
+Read the manuscript's Abstract, Introduction, equations/tables, and Discussion/Limitations **before** reading the review, and record four **Immutable Anchors**:
+1. **Soul & Original Value (`kABT` + Dobzhansky Spine)**: What bold insight or formulation gives this paper its life? *(Off-limits to dilution.)*
+2. **Paper Genre Contract**: Lock the paper's archetype (*Mechanism/Formulation*, *Diagnostic/Refutation*, *Exact Simplification*, *Scaling/Boundary Law*, or *Systems Kernel*).
+3. **Explicitly Disclosed Limitations Map**: Index every assumption, scale cap, and boundary already transparently stated in the draft (with exact section/line pointers).
+4. **Critique Round (`R = 1, 2, >=3`)**: `Round 1` = open to surviving high-ROI substance; `Round 2` = objective math/code/numeric bugs only; `Round >= 3` = **HARD CONVERGENCE STOP** (reject all non-bug edits to prevent contractive relaxation into legalese).
 
 ---
 
-### Step 2: Decompose & Collapse Cross-Model Echoes
+### Stage A: Mandatory Item-by-Item Adversarial Cross-Examination (严禁轻易认同 · 严禁提前想改法)
 
-1. Break the external review(s) into atomic claims (`C1, C2, ...`).
-2. **Collapse Correlated Model Priors**: If the user ran 2–4 different frontier models on the draft, do **not** treat shared checklist demands (*"extend to non-stationary / multimodal / 70B regimes"*, *"add theoretical convergence guarantees for the heuristic"*, *"tone down claims"*) as independent human-expert consensus—frontier models share heavily overlapping post-training critic rubrics. Judge every point strictly by **Does falsifying/ignoring this actually invalidate our core thesis inside our stated scope?**
+Decompose the external review(s) into atomic comments `C1, C2, ..., CN` (collapsing duplicate echoes across multiple models—shared RLHF critic priors are **not** independent expert consensus).
 
----
+For **EVERY SINGLE comment `Ci` (`i = 1..N`, zero batch-skipping)**, execute all **5 Critical Interrogation Questions** in order—**do NOT propose any edit, experiment, or wording change during Stage A**:
 
-### Step 3: Ruthless 4-Bucket Triage (Filter by Causal Threat & Signal-to-Cost ROI)
+1. **Q1 — Textual & Mathematical Fact-Check (核对原文与公式事实)**:
+   - Check the exact lines, equations, tables, code, and Appendix of the manuscript. Did the reviewer misread notation, overlook an existing ablation/proof detail, or attack a strawman claim we never made?
+2. **Q2 — Premise & Counter-Claim Falsification (质疑审稿人推论本身)**:
+   - Do **not** assume the reviewer's math or domain intuition is right just because it sounds sophisticated! Ask: *Is the reviewer's claimed failure mechanism or theoretical objection actually true in our regime, or does their counter-argument rely on a false assumption, wrong asymptotic scaling, or inapplicable textbook convention?*
+3. **Q3 — Honest Boundary & Genre Immunity Check (核对已声明边界与体裁契约)**:
+   - Did we already disclose this exact boundary honestly in `Limitations`/`Scope` without overclaiming in the Abstract (`LIMITATION_BOOMERANG`)? Does the request violate our paper's Genre Contract (e.g., demanding decorative toy `mathiness` on an empirical paper or 10 extra benchmarks on a focused diagnostic study)?
+4. **Q4 — First-Order Causal Flip Test (一阶结论翻转检验)**:
+   - Even if `Ci` is factually accurate, theoretically valid, and unstated: *Is there a realistic ($>10\%$) probability that this issue reverses our primary conclusion, invalidates our core mechanism, or causes a careful human expert to misinterpret our contribution?* Or is it test-time overthinking on a measure-zero edge case / $O(\epsilon^2)$ confounder?
+5. **Q5 — Soul & ROI Gate (护魂与信噪比裁决)**:
+   - Does addressing `Ci` genuinely sharpen the paper's truth/impact at high `Signal / (Compute + Prose Cost)`, without blunting the `kABT` spine?
 
-Classify each atomic comment into exactly one bucket (see [lrm-critic-pathologies-and-ac-triage.md](./references/lrm-critic-pathologies-and-ac-triage.md)):
-
-| Triage Bucket | Diagnostic Test | Permitted Action |
-| :--- | :--- | :--- |
-| **1. `DO NOW — HIGH-LEVERAGE SUBSTANCE`**<br>*(Real bugs, sharp proofs, high-ROI experiments)* | • **True Defect**: Equation/index/sign error, unstated theorem condition needed for validity, data leakage, unfair baseline budget (`Melis` iso-compute gap), or cross-table numeric drift.<br>• **High-ROI Crucial Experiment**: A bounded test that rules out a **realistic first-order rival explanation ($H_2$)** for your main claim at high `Information Gain / Compute Cost`. | Fix the math/metric defect cleanly, or recommend the targeted experiment/ablation with concrete effort estimate. |
-| **2. `CLARIFY STRUCTURALLY — ZERO HEDGING`**<br>*(Genuine reader friction, zero soul dilution)* | • **True Exposition Gap**: Undefined symbol, missing protocol detail, ambiguous figure caption, or an important detail buried in Appendix without a forward pointer.<br>• **Genuinely Unstated Real Boundary**: A material scope boundary not yet mentioned anywhere in the draft. | Fix via **structural clarity** (define at first use, add a 5-word `(Appendix B)` pointer, or add **1 crisp sentence** in `Limitations`). **Never add hedge soup!** |
-| **3. `IGNORE — LIMITATION BOOMERANG`**<br>*(Punishing your own honesty)* | • Attacks or demands full experimental resolution of a limitation, scale cap, or assumption **already transparently stated** in your `Scope` / `Discussion` / `Limitations`. | **Touch nothing** (at most verify the existing disclosure is clear). Point out the exact lines where you already reported it honestly. |
-| **4. `IGNORE — LRM OVERTHINKING & HEDGING TRAP`**<br>*(Artificial nitpicks & soul killers)* | • **Overthinking Corner Cases**: Measure-zero pathological inputs or $O(\epsilon^2)$ confounders that cannot flip the primary conclusion.<br>• **Quota Filler**: Inventing minor gripes solely because the prompt asked for `Weaknesses`.<br>• **Genre/Scope Creep**: Demanding tangential modalities, scales, or decorative theorems (`mathiness`) outside the paper's archetype.<br>• **Defensive-Writing Pressure**: Demanding timid qualifiers (*"preliminarily suggests under specific settings"*) when evidence supports your scoped claim. | **Discard completely.** State in 1 crisp line why obeying it would bloat the paper, dilute the story, or waste compute. |
-
----
-
-### Step 4: Present the Area-Chair Triage Brief & Pause Before Editing
-
-**HUMAN-IN-THE-LOOP DECISION GATE**: Unless the user explicitly said *"filter and apply directly"*, **output the structured Triage Brief first and let the user pick which `Bucket 1` / `Bucket 2` items to execute**:
-- **(1) Locked Soul Summary** (`1–2` lines confirming what will *not* be compromised),
-- **(2) Worthwhile Actions (`Bucket 1` + `Bucket 2`, sorted by impact/effort)** — concrete, surgical, non-defensive,
-- **(3) Discarded Noise (`Bucket 3` + `Bucket 4`, grouped concisely)** — explaining why each is safe to ignore.
+#### Hard Stage-A Gate Verdict (Per Comment `Ci`)
+- **`REJECTED_AT_AUDIT` (`survives_scrutiny = false`)**: Failed **any** of Q1–Q5 (`PHANTOM_OR_MISREAD`, `FLAWED_REVIEWER_PREMISE`, `LIMITATION_BOOMERANG`, `OVERTHINKING_NITPICK`, `LOW_ROI_SCOPE_CREEP`, `GENRE_MISMATCH`, or `DEFENSIVE_HEDGING_TRAP`).
+  - **Hard Rule**: Terminated immediately. **Zero** manuscript edits, **zero** "compromise footnotes," **zero** "softening a word just to placate them."
+- **`SURVIVES_CRITICAL_AUDIT` (`survives_scrutiny = true`)**: Passed **all** Q1–Q5—you verified against the manuscript and first principles that the critique exposes a **real math/logic/code defect**, a **high-ROI competing-hypothesis gap ($H_2$)**, or a **genuine reader comprehension stumbling block**.
+  - **Only these survivors enter Stage B!**
 
 ---
 
-### Step 5: Execute Approved Changes Under the Human-Voice & Anti-Hedging Charter
+### Stage B: Surgical Resolution & Response Design (仅限通过完整批判性质询的幸存条目！)
 
-When executing user-approved fixes (consult [anti-hedging-and-soul-preservation.md](./references/anti-hedging-and-soul-preservation.md)):
-1. **Calibrate by Exact Noun/Equation Scope, NEVER by Qualifier Chains**:
-   - *Forbidden*: `"Our approach may, to a certain extent, potentially help alleviate..."` / `"在一定程度上该框架或许可能有助于缓解……"`
-   - *Required*: `"On $L \le 128\text{k}$ causal decoders, rank-16 sketching reduces..."` / `"在 $L \le 128\text{k}$ 的因果解码器上，秩-16 速写将……降低……"` (100% rigorous via explicit domain scope, strong verb, zero cowardly adverbs!).
-2. **Single-Locus `"But, Yes"` Containment**: Keep caveats quarantined in the dedicated `Limitations` / scope paragraph—never sprinkle defensive apologies across the Abstract, Introduction hook, section titles, or Results topic sentences.
-3. **Seamless Integration (Zero Patchwork Scars)**: Never paste `"To address potential concerns, it is worth noting that..."` scar paragraphs. If an approved new experiment reshapes a section's argument, hand off to `/scientific-writing` while keeping this Soul Lock active.
-4. **Mandatory Post-Edit Diff Audit**: Run `uv run "<SKILL_DIR>/scripts/audit_review_and_hedging.py" diff-audit <before_file> <after_file>` and confirm **zero stacked hedge chains**, **zero apologetic boilerplate**, and **preserved Abstract/Intro punchiness**!
+**ONLY** for comments marked `SURVIVES_CRITICAL_AUDIT = true`:
+
+1. **Assign Surviving Bucket & Design Non-Defensive Action**:
+   - **`DO_NOW_SUBSTANCE`**: Fix the verified equation/sign/code/leakage defect cleanly, or specify the bounded, high-ROI experiment/control (e.g., iso-compute simple baseline) with concrete runtime cost.
+   - **`CLARIFY_STRUCTURALLY`**: Resolve genuine reader friction via **structural placement** (define symbol at first use, add a 5-word `(Appendix B)` pointer, quarantine intuition vs. theorem cleanly, or add **at most 1 crisp sentence** in the dedicated `Limitations` locus).
+2. **Present the Two-Stage Triage Ledger & Pause for User Confirmation**:
+   - Unless the user explicitly instructed *"audit and apply directly"*, **stop and present**:
+     1. **Locked Soul Anchor**,
+     2. **Stage-A Per-Comment Critical Interrogation Log** (showing *why* each comment survived or failed Q1–Q5, proving zero reflexive agreement), and
+     3. **Stage-B Proposed Surgical Actions (for survivors only)**—waiting for the user's green light before modifying the manuscript.
+3. **Execute Approved Survivor Fixes Under the Anti-Hedging Charter** ([anti-hedging-and-soul-preservation.md](./references/anti-hedging-and-soul-preservation.md)):
+   - **Exact Noun/Equation Scope Over Qualifier Chains**: Scope claims with concrete nouns/numbers (*"Across 7B–14B causal decoders up to 128k tokens..."*), **NEVER** stacked hedges (*"might potentially appear to..."* / *"在一定程度上或许可能有望……"*).
+   - **Single-Locus `"But, Yes"` Containment & Zero Scar Tissue**: Keep boundaries in one dedicated paragraph; ban `"It is worth noting that..."` / `"需要指出的是……"` scar phrases.
+   - **Mandatory Post-Edit Diff Verification**: Run `uv run "<SKILL_DIR>/scripts/audit_review_and_hedging.py" diff-audit <before_file> <after_file> --strict` to verify zero stacked hedges, zero scar tissue, and intact Abstract/Intro punchiness!

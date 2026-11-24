@@ -1,6 +1,24 @@
-# Frontier Reasoning-Critic Pathologies & Area-Chair Triage Protocol
+# Anti-Sycophancy Cross-Examination & Frontier Reasoning-Critic Pathologies
 
-Modern Large Reasoning Models (LRMs) do not fail like early short-context chatbots—they read your entire LaTeX repository, trace equation indices accurately, and write fluent, authoritative critiques. That very fluency makes them **dangerous when treated as infallible arbiters**. Understanding *why* frontier reasoning models over-criticize is the key to extracting their 20% genuine signal without letting the other 80% deform your paper.
+Modern Large Reasoning Models (LRMs) do not fail like early short-context chatbots—they read your entire LaTeX repository, trace equation indices accurately, and write fluent, authoritative critiques. That very fluency triggers **reflexive sycophancy** in both human authors and AI coding/writing assistants (*"Oh, the reviewer raised a subtle point about non-isotropic variance—let's add a caveat and run an ablation!"*).
+
+**Core Principle — Burden of Proof Reversal**: A generated review comment is an **unverified adversarial hypothesis**, never an authoritative ruling. You must try to **falsify the reviewer's critique first** before ever considering changing a single character of the paper.
+
+---
+
+## 0. Mandatory Stage-A Per-Comment Adversarial Cross-Examination
+
+Before **any** comment is allowed into solution/response planning, interrogate it sequentially against five falsification gates:
+
+| Gate | Critical Question to Ask Against the Reviewer | How Intimidating-Sounding LRM Critiques Fail Here |
+| :--- | :--- | :--- |
+| **Q1. Manuscript Fact-Check** | *Did the reviewer cite our exact equations, protocols, and Appendix accurately?* | LRM claims *"Baseline B was not tuned at matched learning rate,"* when Appendix C.2 Table 6 explicitly reports the 5-point LR grid for Baseline B. |
+| **Q2. Reviewer Premise Falsification** | *Is the reviewer's own mathematical or mechanistic counter-claim actually true here?* | LRM argues *"Rank-$r$ sketching violates causal masking because SVD uses future keys,"* overlooking that our operator is a **prefix-streaming** Frequent-Directions update $S_t = \text{FD}(S_{t-1}, k_t)$ that strictly depends on $j \le t$! *(An uncritical agent would have panicked and hedged; cross-examination proves the reviewer's math wrong!)* |
+| **Q3. Disclosed Scope & Genre Immunity** | *Did we already state this boundary honestly in `Limitations`, or does it violate our paper's Genre Contract?* | Paper explicitly targets single-turn diagnostic attribution; LRM demands multi-agent RL deployment benchmarks or a decorative convex toy theorem. |
+| **Q4. First-Order Causal Flip Test** | *Could this realistically ($>10\%$ chance) reverse our main ranking or invalidate our mechanism?* | LRM flags floating-point accumulation order in `bfloat16` softmax reduction when our main effect size is $+38\text{ pp}$ (`10^4x` larger than numerical rounding noise). |
+| **Q5. Soul & Signal-to-Cost ROI** | *Does fixing this sharpen the paper's core truth without blunting `kABT` or wasting massive compute?* | LRM asks for 5 extra datasets testing the exact same regime already proven across 4 standard benchmarks. |
+
+> **Hard Gate Rule**: While executing Q1–Q5, **ban all solution brainstorming** (no *"we could briefly mention..."*, no *"maybe add a footnote..."*). Only comments passing **100% of Q1–Q5** receive `survives_scrutiny = true` and enter Stage B.
 
 ---
 
