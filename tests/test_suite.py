@@ -34,6 +34,7 @@ VISUAL_LINT_SCRIPT = REPO_ROOT / "plugins/scientific-writing/skills/scientific-w
 SCAFFOLD_SCRIPT = REPO_ROOT / "plugins/scientific-computing/skills/scientific-computing/scripts/scaffold_research_project.py"
 PY_AUDIT_SCRIPT = REPO_ROOT / "plugins/scientific-computing/skills/scientific-computing/scripts/audit_scientific_python.py"
 IDEA_LINT_SCRIPT = REPO_ROOT / "plugins/scientific-ideation/skills/scientific-ideation/scripts/lint_research_ideas.py"
+REVIEW_TRIAGE_SCRIPT = REPO_ROOT / "plugins/llm-review-triage/skills/llm-review-triage/scripts/audit_review_and_hedging.py"
 
 
 def load_module(name: str, path: Path):
@@ -52,6 +53,7 @@ lmv = load_module("lint_manuscript_visuals", VISUAL_LINT_SCRIPT)
 srp = load_module("scaffold_research_project", SCAFFOLD_SCRIPT)
 asp = load_module("audit_scientific_python", PY_AUDIT_SCRIPT)
 lri = load_module("lint_research_ideas", IDEA_LINT_SCRIPT)
+arh = load_module("audit_review_and_hedging", REVIEW_TRIAGE_SCRIPT)
 
 
 class TestPluginAndSkillManifests(unittest.TestCase):
@@ -73,6 +75,7 @@ class TestPluginAndSkillManifests(unittest.TestCase):
             REPO_ROOT / "plugins/research-literature",
             REPO_ROOT / "plugins/scientific-computing",
             REPO_ROOT / "plugins/scientific-writing",
+            REPO_ROOT / "plugins/llm-review-triage",
         ):
             manifest = json.loads((pdir / "plugin.json").read_text(encoding="utf-8"))
             self.assertTrue(set(manifest.keys()).issubset(allowed_plugin_keys))
@@ -676,6 +679,76 @@ class TestScientificIdeationTools(unittest.TestCase):
         by_id = {r["id"]: r for r in rep["ranked_candidates"]}
         self.assertEqual(by_id["slop_2"]["pareto_tier"], 1)
         self.assertEqual(by_id["slop_1"]["pareto_tier"], 2)
+
+
+class TestLLMReviewTriageTools(unittest.TestCase):
+    def test_plugin_remains_decoupled_without_always_on_rules(self) -> None:
+        self.assertFalse(
+            (REPO_ROOT / "plugins/llm-review-triage/rules").exists(),
+            "llm-review-triage must stay on-demand without an Always-On rules/ directory.",
+        )
+
+    def test_ledger_flags_defensive_plans_round3_drift_and_appeasement(self) -> None:
+        rep_clean = arh.summarize_triage_ledger(arh._STARTER_LEDGER)
+        self.assertTrue(rep_clean["clean"], msg=json.dumps(rep_clean, indent=2))
+
+        bad_ledger = {
+            "manuscript_title": "Drift Test",
+            "soul_anchor": {
+                "core_thesis_kabt": "Valid core thesis with clear [BUT] and [THEREFORE] structure.",
+                "paper_archetype": "diagnostic_refutation",
+                "disclosed_limitations": ["7B-14B text decoders only."],
+                "round_index": 3,
+            },
+            "comments": [
+                {
+                    "id": f"C{i}",
+                    "summary": "Minor nitpick",
+                    "bucket": "CLARIFY_STRUCTURALLY",
+                    "objective_bug": False,
+                    "planned_action": "Soften claims and add qualifiers in the abstract." if i == 1 else "Add extra sentence.",
+                }
+                for i in range(1, 6)
+            ],
+        }
+        rep_bad = arh.summarize_triage_ledger(bad_ledger)
+        self.assertFalse(rep_bad["clean"])
+        codes = {iss["code"] for iss in rep_bad["issues"]}
+        self.assertIn("DEFENSIVE_ACTION_PLAN", codes)
+        self.assertIn("ROUND_3_DRIFT_RISK", codes)
+        self.assertIn("UNFILTERED_APPEASEMENT_RISK", codes)
+
+    def test_diff_audit_catches_bilingual_stacked_hedges_and_allows_exact_scoping(self) -> None:
+        before_tex = (
+            "\\begin{abstract}\n"
+            "Rank-16 sketching eliminates multi-hop retrieval collapse.\n"
+            "\\end{abstract}\n"
+            "实验表明该方法显著降低了延迟。\n"
+        )
+        # Clean revision: exact domain scope, zero cowardly qualifier chains!
+        after_clean = (
+            "\\begin{abstract}\n"
+            "Across 7B--14B decoders up to 128k tokens, rank-16 sketching recovers 99.1\\% multi-hop recall.\n"
+            "\\end{abstract}\n"
+            "在 128k 上下文内，该方法将解码延迟降低了 3.1 倍。\n"
+        )
+        rep_ok = arh.run_diff_audit(before_tex, after_clean)
+        self.assertTrue(rep_ok["clean"], msg=json.dumps(rep_ok, indent=2))
+
+        # Defensive revision: stacked English + Chinese hedges, abstract dilution, & scar tissue!
+        after_defensive = (
+            "\\begin{abstract}\n"
+            "Under certain specific configurations, rank-16 sketching might potentially appear to mitigate collapse.\n"
+            "\\end{abstract}\n"
+            "It is worth noting that our method is not a panacea.\n"
+            "在一定程度上该框架或许可能有望缓解特定场景下的退化。\n"
+        )
+        rep_bad = arh.run_diff_audit(before_tex, after_defensive)
+        self.assertFalse(rep_bad["clean"])
+        codes = {f["code"] for f in rep_bad["findings"]}
+        self.assertIn("STACKED_HEDGE_CHAIN", codes)
+        self.assertIn("APOLOGETIC_SCAR_TISSUE", codes)
+        self.assertIn("ABSTRACT_HOOK_HEDGED", codes)
 
 
 if __name__ == "__main__":

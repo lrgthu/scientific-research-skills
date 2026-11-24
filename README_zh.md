@@ -9,7 +9,7 @@
 
 面向 **Google Antigravity**、**Claude Code**、**OpenAI Codex CLI**、**Gemini CLI** 与 **Cursor** 的**零订阅费、端到端科研智能体技能套件（Skill Suite）**。
 
-当前大多数 AI 辅助科研工具存在明显的链路断层：起点依赖大模型凭空“拍脑袋”拼凑热词（容易撞车或隐含不切实际的先知假设），文献层被迫依赖多个割裂且昂贵的商业 SaaS（**Undermind**、**ResearchRabbit**、**Scite**、**Elicit**、**SciSpace**），实验代码缺乏可复现性与数值防错规范，终点则是“打补丁式”的碎片化 AI 润色。本项目将**「第 0 环：选题品味与强推论证伪 → 第 1 环：文献图谱与源码证据 → 第 2 环：可复现科学计算 → 第 3 环：论文重构与出版级图表」**完整科研四段闭环沉淀为 **4 个按需加载的解耦插件**（共 `6` 个核心 Skill、`8` 个基于 `uv` 的零配置 Python CLI，以及反空想、反幻觉、可复现与反补丁全局护栏规则）：
+当前大多数 AI 辅助科研工具存在明显的链路断层：起点依赖大模型凭空“拍脑袋”拼凑热词，文献层被迫依赖多个割裂且昂贵的商业 SaaS（**Undermind**、**ResearchRabbit**、**Scite**、**Elicit**、**SciSpace**），实验代码缺乏可复现性与数值防错规范，终点则是“打补丁式”润色，且在引入外部推理大模型模拟审稿时极易陷入“诚实局限被当靶子打、为找茬而找茬、多轮防御性加限定词导致文章不像人话”的陷阱。本项目将**「Stage 0 选题与强推论 → Stage 1 文献图谱与源码证据 → Stage 2 可复现科学计算 → Stage 3 论文重构与出版级图表」**四段闭环外加**「独立按需插件 `/llm-review-triage`（外审意见分诊与护魂盾）」**沉淀为 **5 个解耦插件**（共 `7` 个核心 Skill、`9` 个基于 `uv` 的零配置 Python CLI）：
 
 ```text
 原始好奇心 / 种子论文 / 实验反常现象
@@ -49,6 +49,11 @@
             • 逐图逐表五门论证检视协议（Doumont 一句话结论 + Alley Assertion-Evidence + Frankel & DePace 视觉推演链 + Cargill 图先行）
             • 视觉感知与标度铁律（Wilke 第 1–29 章 + Rougier 等《更佳科研图表十诫》）
             • Okabe–Ito 色觉安全配色、期刊精确栏宽预设与无竖线 Booktabs 三线表规范
+
+ [独立按需插件: llm-review-triage] （零常驻规则开销 —— 仅在面对外部大模型审稿意见或调用 `/llm-review-triage` 时激活）
+  └── llm-review-triage:
+       • 灵魂锚点锁死 + 诚实局限回旋镖免疫 + 推理模型过度推演（Overthinking）找茬过滤
+       • 多轮收敛硬停损（Round <= 2）+ 中英双语防御性限定词与补丁疤痕 Diff 审计（`audit_review_and_hedging.py`）
 ```
 
 ---
@@ -140,6 +145,12 @@ uv run "$SCICOMP_CLI/audit_scientific_python.py" --strict ./my-experiment
 IDEATION_CLI="plugins/scientific-ideation/skills/scientific-ideation/scripts/lint_research_ideas.py"
 uv run "$IDEATION_CLI" --init-template /tmp/candidate_ideas.json
 uv run "$IDEATION_CLI" /tmp/candidate_ideas.json --markdown-out ./ideation_murder_board.md --strict
+
+# 7. 独立外审意见 Area-Chair 分诊与改稿前后“防免责声明体”中英双语 Diff 审计
+TRIAGE_CLI="plugins/llm-review-triage/skills/llm-review-triage/scripts/audit_review_and_hedging.py"
+uv run "$TRIAGE_CLI" init-ledger /tmp/triage_ledger.json
+uv run "$TRIAGE_CLI" summarize-ledger /tmp/triage_ledger.json --markdown-out ./review_triage_brief.md --strict
+uv run "$TRIAGE_CLI" diff-audit ./manuscript/before.tex ./manuscript/after.tex --strict
 ```
 
 *（可选提速配置：如需在超大规模批处理下获得更高专属配额，可在 `~/.env` 中按需配置免费的 `S2_API_KEY`、`OPENALEX_API_KEY` 与 `CROSSREF_MAILTO`，脚本会自动静默读取。）*

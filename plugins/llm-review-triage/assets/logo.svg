@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" fill="none">
+  <rect x="12" y="12" width="104" height="104" rx="24" fill="#0F172A" stroke="#10B981" stroke-width="4"/>
+  <!-- Triage funnel / shield -->
+  <path d="M28 34 H100 L72 66 V94 L56 86 V66 L28 34 Z" fill="#1E293B" stroke="#94A3B8" stroke-width="3.5" stroke-linejoin="round"/>
+  <!-- Deflected noise arrows (left & right) -->
+  <path d="M36 24 L24 18 M92 24 L104 18" stroke="#EF4444" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- Protected core thesis gem at output -->
+  <circle cx="64" cy="102" r="7" fill="#F59E0B" stroke="#FEF3C7" stroke-width="2.5"/>
+  <!-- Sharp signal beam -->
+  <path d="M64 42 V78" stroke="#10B981" stroke-width="4" stroke-linecap="round"/>
+</svg>

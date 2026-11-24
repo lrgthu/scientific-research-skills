@@ -103,18 +103,22 @@ if [[ "$MODE" == "check" ]]; then
     "$HOME/.gemini/config/plugins/research-literature" \
     "$HOME/.gemini/config/plugins/scientific-computing" \
     "$HOME/.gemini/config/plugins/scientific-writing" \
+    "$HOME/.gemini/config/plugins/llm-review-triage" \
     "$HOME/.claude/skills/scientific-ideation" \
     "$HOME/.claude/skills/scholarly-graph-audit" \
     "$HOME/.claude/skills/scientific-computing" \
     "$HOME/.claude/skills/scientific-writing" \
+    "$HOME/.claude/skills/llm-review-triage" \
     "$HOME/.codex/skills/scientific-ideation" \
     "$HOME/.codex/skills/scholarly-graph-audit" \
     "$HOME/.codex/skills/scientific-computing" \
     "$HOME/.codex/skills/scientific-writing" \
+    "$HOME/.codex/skills/llm-review-triage" \
     "$HOME/.cursor/skills/scientific-ideation" \
     "$HOME/.cursor/skills/scholarly-graph-audit" \
     "$HOME/.cursor/skills/scientific-computing" \
-    "$HOME/.cursor/skills/scientific-writing"; do
+    "$HOME/.cursor/skills/scientific-writing" \
+    "$HOME/.cursor/skills/llm-review-triage"; do
     if [[ -d "$d" ]]; then
       echo "  [PRESENT] $d"
     fi
@@ -134,7 +138,7 @@ fi
 install_antigravity() {
   local dest="$HOME/.gemini/config/plugins"
   mkdir -p "$dest"
-  for p in scientific-ideation research-literature scientific-computing scientific-writing; do
+  for p in scientific-ideation research-literature scientific-computing scientific-writing llm-review-triage; do
     rm -rf "$dest/$p"
     cp -R "$REPO_ROOT/plugins/$p" "$dest/$p"
     find "$dest/$p" -name "__pycache__" -type d -prune -exec rm -rf {} +
@@ -155,7 +159,8 @@ install_flat_skills() {
     "$REPO_ROOT/plugins/research-literature/skills/literature-evidence-workflow" \
     "$REPO_ROOT/plugins/scientific-computing/skills/scientific-computing" \
     "$REPO_ROOT/plugins/scientific-writing/skills/scientific-writing" \
-    "$REPO_ROOT/plugins/scientific-writing/skills/scientific-figures"; do
+    "$REPO_ROOT/plugins/scientific-writing/skills/scientific-figures" \
+    "$REPO_ROOT/plugins/llm-review-triage/skills/llm-review-triage"; do
     local sname
     sname="$(basename "$skill_dir")"
     rm -rf "$dest/$sname"

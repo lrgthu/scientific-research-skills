@@ -9,7 +9,7 @@
 
 An end-to-end, **zero-subscription open-stack research skill suite** for coding and research agents (**Google Antigravity**, **Claude Code**, **OpenAI Codex CLI**, **Gemini CLI**, and **Cursor**).
 
-Most AI research workflows break in the middle: researchers juggle naive LLM armchair "brainstorming" at the start, fragmented paid SaaS tabs (**Undermind**, **ResearchRabbit**, **Scite**, **Elicit**, **SciSpace**) in literature review, ad-hoc unseeded experiment scripts in coding, and patchwork LLM prose edits at the end. **`scientific-research-skills`** unifies the entire **Stage 0 → Stage 3** scientific method into **four decoupled, on-demand plugins** (`6` skills + `8` standalone `uv` Python CLIs + ironclad anti-slop, anti-hallucination, reproducibility, & anti-patchwork rules):
+Most AI research workflows break in the middle: researchers juggle naive LLM armchair "brainstorming" at the start, fragmented paid SaaS tabs (**Undermind**, **ResearchRabbit**, **Scite**, **Elicit**, **SciSpace**) in literature review, ad-hoc unseeded experiment scripts in coding, patchwork LLM prose edits, and unfiltered multi-round AI referee critiques that sand off a paper's soul into defensive disclaimers. **`scientific-research-skills`** unifies the **Stage 0 → Stage 3** scientific method plus a **standalone on-demand AI-review filter** into **five decoupled plugins** (`7` skills + `9` standalone `uv` Python CLIs):
 
 ```text
 Raw Curiosity / Seed Papers / Observed Anomaly
@@ -49,6 +49,11 @@ Raw Curiosity / Seed Papers / Observed Anomaly
             • 5-Gate Figure/Table Assertion-Evidence Audit (Doumont + Alley + Frankel & DePace + Cargill/Schimel)
             • Perceptual & Scale Laws (Wilke Ch. 1–29 + Rougier Ten Simple Rules)
             • Okabe–Ito CVD-Safe Palettes, Exact Journal Widths, & Clean Booktabs Tables
+
+ [Standalone On-Demand: llm-review-triage]  (0 Always-On Rules — Invoked ONLY on External AI Reviews / `/llm-review-triage`)
+  └── llm-review-triage:
+       • Soul Lock + Limitation-Boomerang Immunity + Test-Time Overthinking / Confounder-Inflation Filter
+       • Round <= 2 Contractive Drift Hard-Stop & Anti-Defensive-Writing Diff Auditor (`audit_review_and_hedging.py`)
 ```
 
 ---
@@ -112,6 +117,13 @@ scientific-research-skills/
                 ├── SKILL.md
                 ├── references/{figure-table-assertion-evidence-audit.md, chart-directory-and-encodings.md, design-principles-tables-and-storytelling.md}
                 └── resources/publication_rcparams.py
+    └── llm-review-triage/               # Standalone On-Demand Plugin: Area-Chair Filter for AI Reviews
+        ├── plugin.json                  # (Intentionally NO rules/AGENTS.md -> 0 Always-On overhead)
+        └── skills/
+            └── llm-review-triage/
+                ├── SKILL.md
+                ├── references/{lrm-critic-pathologies-and-ac-triage.md, anti-hedging-and-soul-preservation.md}
+                └── scripts/audit_review_and_hedging.py
 ```
 
 ---
@@ -232,6 +244,18 @@ uv run "$IDEATION_CLI" --init-template /tmp/candidate_ideas.json
 uv run "$IDEATION_CLI" /tmp/candidate_ideas.json \
   --markdown-out ./ideation_murder_board.md \
   --strict
+```
+
+### 7. Triage External Reasoning-Model Reviews & Guard Diffs Against Defensive Hedging (`/llm-review-triage`)
+```bash
+TRIAGE_CLI="plugins/llm-review-triage/skills/llm-review-triage/scripts/audit_review_and_hedging.py"
+
+# Scaffold & summarize an Area-Chair review triage ledger (separating 20% high-ROI substance from overthinking noise)
+uv run "$TRIAGE_CLI" init-ledger /tmp/triage_ledger.json
+uv run "$TRIAGE_CLI" summarize-ledger /tmp/triage_ledger.json --markdown-out ./review_triage_brief.md --strict
+
+# Audit a manuscript diff before/after review edits to block stacked hedge chains & apologetic scar tissue
+uv run "$TRIAGE_CLI" diff-audit ./manuscript/before.tex ./manuscript/after.tex --strict
 ```
 
 *(Optional Rate-Limit Keys)*: For heavy batch workloads, literature scripts automatically pick up `S2_API_KEY`, `OPENALEX_API_KEY`, and `CROSSREF_MAILTO` from `~/.env` if defined.

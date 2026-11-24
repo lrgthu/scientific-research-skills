@@ -5,8 +5,8 @@
     "url": "https://github.com/lrgthu"
   },
   "metadata": {
-    "description": "Full-lifecycle open-stack scientific research skills (Stages 0–3): Strong Inference problem selection & Pareto ideation, citation graph lineage & retraction auditing, LaTeX/full-text evidence matrices, reproducible Google-style scientific Python, and anti-patchwork scholarly writing & 5-gate assertion-evidence figures.",
-    "version": "2.0.1"
+    "description": "Full-lifecycle open-stack scientific research skills (Stages 0–3 + standalone /llm-review-triage): Strong Inference problem selection & Pareto ideation, citation graph lineage & retraction auditing, LaTeX/full-text evidence matrices, reproducible Google-style scientific Python, anti-patchwork scholarly writing & 5-gate assertion-evidence figures, and Area-Chair triage for external LLM/LRM peer reviews.",
+    "version": "2.1.0"
   },
   "plugins": [
     {
@@ -35,6 +35,13 @@
       "source": "./plugins/scientific-writing",
       "description": "Stage-3 scholarly writing, scientific storytelling & publication figure suite: scientific-writing automatically co-invokes scientific-figures across Anti-Patchwork Holistic Reconstruction, Cross-Artifact Numeric/Protocol Consistency Audit, Olson ABT/Narrative Spectrum, 5-Gate Assertion-Evidence Figure/Table Audit (Doumont, Alley, Frankel & DePace, Cargill), Schimel OCAR, Gopen & Swan mechanics, and Wilke + Rougier figure & Booktabs engineering.",
       "version": "1.8.0",
+      "license": "MIT"
+    },
+    {
+      "name": "llm-review-triage",
+      "source": "./plugins/llm-review-triage",
+      "description": "Standalone on-demand Area-Chair filter for external LLM / Large Reasoning Model peer reviews: protects a manuscript's soul and already-disclosed limitations against Limitation-Boomerangs, test-time overthinking nitpicks, multi-round contractive drift, and defensive qualifier bloat.",
+      "version": "1.0.0",
       "license": "MIT"
     }
   ]

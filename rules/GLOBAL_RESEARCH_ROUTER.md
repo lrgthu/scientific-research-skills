@@ -14,5 +14,6 @@ Whenever **any** conversation, `/plan`, `/boost`, `/grill-me`, `/goal`, `/teamwo
 
 1. **Seamless Cross-Stage Chaining (`0 → 1 → 2 → 3`)**: Transition automatically across Stages `0 → 1 → 2 → 3`, reading each stage's `SKILL.md` before executing that stage.
 2. **Mandatory Subagent, Workflow, & Swarm Propagation**: Child agents (`research`, `self`, `run_workflow` nodes, `swarm` workers) start with fresh context; explicitly instruct every delegated research worker in its `Prompt`/`brief` to read the corresponding `SKILL.md` first.
-3. **Clean Non-Research Exemption**: Everyday non-research tasks (homelab ops/DNS/monitoring changes, routine admin scripts, casual Q&A, email/calendar, non-scientific UI) remain **exempt**.
+3. **Standalone On-Demand LLM-Review Filter (`/llm-review-triage`)**: `llm-review-triage` is intentionally decoupled (`0` Always-On rules) and activated **only** when the user shares external AI/LLM-generated review comments or invokes `/llm-review-triage`.
+4. **Clean Non-Research Exemption**: Everyday non-research tasks (homelab ops/DNS/monitoring changes, routine admin scripts, casual Q&A, email/calendar, non-scientific UI) remain **exempt**.
 <!-- scientific-research-skills:end -->

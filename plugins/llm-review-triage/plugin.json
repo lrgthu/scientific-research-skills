@@ -1,0 +1,14 @@
+{
+  "name": "llm-review-triage",
+  "displayName": "LLM Review Triage & Soul Guard",
+  "version": "1.0.0",
+  "author": "lrgthu",
+  "repository": "https://github.com/lrgthu/scientific-research-skills",
+  "description": "Standalone on-demand Area-Chair filter for LLM-generated peer reviews: separates high-leverage technical/experimental fixes from Limitation-Boomerangs, quota-filling nitpicks, false multi-LLM consensus, recursive multi-round drift, and defensive qualifier bloat that destroys a paper's soul.",
+  "logo": "assets/logo.svg",
+  "suggestedPrompts": [
+    "Filter these LLM-generated review comments like a senior Area Chair: protect our paper's core soul and already-stated limitations, and list only high-leverage fixes",
+    "Compare Round-1 vs Round-2 AI review comments on our draft, stop recursive drift, and flag any over-hedging or scope creep",
+    "Audit our revised draft diff after addressing review comments to strip defensive qualifier chains and restore crisp human scientific prose"
+  ]
+}
